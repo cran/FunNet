@@ -1,5 +1,5 @@
-\name{HS.locus.name}
-\alias{HS.locus.name}
+\name{RN.KEGG.file.annot}
+\alias{RN.KEGG.file.annot}
 \docType{data}
 \title{Internal routine or variable}
 \description{

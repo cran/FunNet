@@ -43,6 +43,8 @@ ChargerKegg <- function(espece = espece){
 		DIResp <- "HS"
 	}else if(espece == "mmu"){   
 		DIResp <- "MM"
+	}else if(espece == "rno"){   
+		DIResp <- "RN"
 	}else if(espece == "sce"){
 		DIResp <- "SC"
 	}
@@ -86,7 +88,7 @@ ChargerKegg <- function(espece = espece){
 
 
 
-	if(espece == "hsa" || espece == "mmu"){		
+	if(espece == "hsa" || espece == "mmu" || espece == "rno"){		
 		suppressWarnings (apply (DTtemp, 1, FUN = "MiseEnFormeKegg" ,FichierFinalNonQuote))
 	}else if(espece == "sce"){
 		suppressWarnings (apply (DTtemp, 1, FUN = "MiseEnFormeKeggSC" ,FichierFinalNonQuote))
@@ -101,6 +103,11 @@ ChargerKegg <- function(espece = espece){
 
 		MM.KEGG.file.annot <<- read.table ( file = FichierFinalNonQuote ,na.strings = "",fill=TRUE,colClasses="character",sep= "\t",header = FALSE,quote = "",comment.char = "")
 		write.table (MM.KEGG.file.annot , FichierFinal ,col.names =FALSE,row.names=FALSE,append = TRUE, sep= "\t") 
+	
+	}else if(espece == "rno"){
+	
+			RN.KEGG.file.annot <<- read.table ( file = FichierFinalNonQuote ,na.strings = "",fill=TRUE,colClasses="character",sep= "\t",header = FALSE,quote = "",comment.char = "")
+			write.table (RN.KEGG.file.annot , FichierFinal ,col.names =FALSE,row.names=FALSE,append = TRUE, sep= "\t") 
 	
 	}else if(espece == "sce"){
 			
@@ -161,6 +168,9 @@ Kegg <- function () {
 
 	dir.create (paste(getwd(),"/Annotations/KEGG/MM",sep=""))
 	ChargerKegg ("mmu")
+	
+	dir.create (paste(getwd(),"/Annotations/KEGG/RN",sep=""))
+	ChargerKegg ("rno")
 
 
 	dir.create (paste(getwd(),"/Annotations/KEGG/SC",sep=""))
@@ -290,6 +300,9 @@ MakeCorrespondanceLLGO <- function (DTLoc2Go, DTGoTermsAndIds,DTGOHierarchy, esp
 	}else if(espece == "mm"){
 		DIResp <- "MM"
 		DTLoc2Go <- DTLoc2Go[DTLoc2Go[,1] == "10090",2:3]
+	}else if(espece == "rn"){
+		DIResp <- "RN"
+		DTLoc2Go <- DTLoc2Go[DTLoc2Go[,1] == "10116",2:3]
 	}else if(espece == "sc"){
 		DIResp <- "SC"
 		DTLoc2Go <- DTLoc2Go[DTLoc2Go[,1] == "4932",2:3]
@@ -317,6 +330,10 @@ MakeCorrespondanceLLGO <- function (DTLoc2Go, DTGoTermsAndIds,DTGOHierarchy, esp
 		MM.GO.DIR.BP.file.annot <<- TroisiemeFiltrage (DTGoTermsAndIds,DTLoc2GoFiltre1, FichBioProcess ,"P")
 		MM.GO.DIR.CC.file.annot <<- TroisiemeFiltrage (DTGoTermsAndIds,DTLoc2GoFiltre1, FichCellComp ,"C")
 		MM.GO.DIR.MF.file.annot <<- TroisiemeFiltrage (DTGoTermsAndIds,DTLoc2GoFiltre1, FichMolFunc ,"F")
+	}else if(espece == "rn"){
+		RN.GO.DIR.BP.file.annot <<- TroisiemeFiltrage (DTGoTermsAndIds,DTLoc2GoFiltre1, FichBioProcess ,"P")
+		RN.GO.DIR.CC.file.annot <<- TroisiemeFiltrage (DTGoTermsAndIds,DTLoc2GoFiltre1, FichCellComp ,"C")
+		RN.GO.DIR.MF.file.annot <<- TroisiemeFiltrage (DTGoTermsAndIds,DTLoc2GoFiltre1, FichMolFunc ,"F")
 	}else if(espece == "sc"){
 		SC.GO.DIR.BP.file.annot <<- TroisiemeFiltrage (DTGoTermsAndIds,DTLoc2GoFiltre1, FichBioProcess ,"P")
 		SC.GO.DIR.CC.file.annot <<- TroisiemeFiltrage (DTGoTermsAndIds,DTLoc2GoFiltre1, FichCellComp ,"C")
@@ -342,6 +359,9 @@ MakeLocusNames <- function( espece, DTLL ) {
 	}else if(espece == "mm"){
 		DTLLesp <- DTLL[DTLL[,1] == "10090",2:ncol(DTLL)]
 		DIResp <- "MM"
+	}else if(espece == "rn"){
+		DTLLesp <- DTLL[DTLL[,1] == "10116",2:ncol(DTLL)]
+		DIResp <- "RN"
 	}else if(espece == "sc"){
 		DTLLesp <- DTLL[DTLL[,1] == "4932",2:ncol(DTLL)]
 		DIResp <- "SC"
@@ -367,6 +387,8 @@ MakeLocusNames <- function( espece, DTLL ) {
 		HS.locus.name <<- DTLLesp
 	}else if(espece == "mm"){
 		MM.locus.name <<- DTLLesp
+	}else if(espece == "rn"){
+		RN.locus.name <<- DTLLesp
 	}else if(espece == "sc"){
 		SC.locus.name <<- DTLLesp
 	}
@@ -428,6 +450,9 @@ goAndLL <- function(DATE=""){
 
 	dir.create (paste(getwd(),"/Annotations/GO/MM",sep=""))
 	MakeCorrespondanceLLGO (DTLoc2Go, DTGoTermsAndIds, DTGoHierarchy , "mm")
+	
+	dir.create (paste(getwd(),"/Annotations/GO/RN",sep=""))
+	MakeCorrespondanceLLGO (DTLoc2Go, DTGoTermsAndIds, DTGoHierarchy , "rn")
 
 
 	dir.create (paste(getwd(),"/Annotations/GO/SC",sep=""))
@@ -442,10 +467,11 @@ goAndLL <- function(DATE=""){
 	dir.create (paste(getwd(),"/Annotations/LL/HS",sep=""))
 	MakeLocusNames ( "hs", DTLL)
 
-
 	dir.create (paste(getwd(),"/Annotations/LL/MM",sep=""))
 	MakeLocusNames ( "mm", DTLL)
-
+	
+	dir.create (paste(getwd(),"/Annotations/LL/RN",sep=""))
+	MakeLocusNames ( "rn", DTLL)
 
 	dir.create (paste(getwd(),"/Annotations/LL/SC",sep=""))
 	MakeLocusNames ( "sc", DTLL)
@@ -476,7 +502,8 @@ annotations <- function (date.annot="") {
 		
 	save(GO.terms.hierarchy,GO.terms.name,HS.GO.DIR.BP.file.annot,HS.GO.DIR.CC.file.annot,HS.GO.DIR.MF.file.annot,
 		HS.KEGG.file.annot,HS.locus.name,KEGG.terms.name,MM.GO.DIR.BP.file.annot,MM.GO.DIR.CC.file.annot,MM.GO.DIR.MF.file.annot,
-		MM.KEGG.file.annot,MM.locus.name,SC.GO.DIR.BP.file.annot,SC.GO.DIR.CC.file.annot,SC.GO.DIR.MF.file.annot,
+		MM.KEGG.file.annot,MM.locus.name,RN.GO.DIR.BP.file.annot,RN.GO.DIR.CC.file.annot,RN.GO.DIR.MF.file.annot,
+		RN.KEGG.file.annot,RN.locus.name,SC.GO.DIR.BP.file.annot,SC.GO.DIR.CC.file.annot,SC.GO.DIR.MF.file.annot,
 		SC.KEGG.file.annot,SC.locus.name,annot.date,file="sysdata.rda",compress=TRUE) 
 	
 	unlink(paste (getwd(),"/Annotations", sep= ""), recursive=TRUE)

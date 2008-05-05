@@ -1,5 +1,5 @@
-\name{HS.locus.name}
-\alias{HS.locus.name}
+\name{RN.GO.DIR.BP.file.annot}
+\alias{RN.GO.DIR.BP.file.annot}
 \docType{data}
 \title{Internal routine or variable}
 \description{

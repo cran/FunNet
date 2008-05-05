@@ -7,7 +7,7 @@
 
 .packageName <- "FunNet"
 
-funnet.version <- "1.00"
+funnet.version <- "1.00-1"
 
 try(Sys.setlocale("LC_ALL", "en_US.utf8"), silent = TRUE)
 
@@ -17,7 +17,7 @@ try(Sys.setlocale("LC_ALL", "en_US.utf8"), silent = TRUE)
   if(!length(verbose) || verbose)
 
 cat(paste("\nThis is FunNet package ",funnet.version," built and maintained by Corneliu Henegar.\n\n",
-	"FunNet(wd='', org=c('HS','MM','SC'), two.lists=TRUE, up.frame=NULL, down.frame=NULL,\n",
+	"FunNet(wd='', org=c('HS','MM','RN','SC'), two.lists=TRUE, up.frame=NULL, down.frame=NULL,\n",
 			"\t genes.frame=NULL, restrict=FALSE, ref.list=NULL, logged=TRUE,\n",
 			"\t discriminant=FALSE, go.bp=TRUE, go.cc=TRUE, go.mf=TRUE, kegg=TRUE,\n",
 			"\t annot.method=c('specificity','terminological','decorrelated'),\n",
@@ -109,9 +109,11 @@ FunNet <- function(wd="", org="HS", two.lists=TRUE, up.frame=NULL, down.frame=NU
 	# EntrezGene ID's	
 	if(org == "HS"){locus.name <- HS.locus.name[,1:2]}
 	if(org == "MM"){locus.name <- MM.locus.name[,1:2]}
+	if(org == "RN"){locus.name <- RN.locus.name[,1:2]}
 	if(org == "SC"){locus.name <- SC.locus.name[,1:2]}
 	if(org == "HS"){locus.symbol <- HS.locus.name[,c(1,3)]}
 	if(org == "MM"){locus.symbol <- MM.locus.name[,c(1,3)]}
+	if(org == "RN"){locus.symbol <- RN.locus.name[,c(1,3)]}
 	if(org == "SC"){locus.symbol <- SC.locus.name[,c(1,3)]}
 	
 	rownames(locus.name) <- locus.name[,1]
@@ -266,6 +268,7 @@ FunNet <- function(wd="", org="HS", two.lists=TRUE, up.frame=NULL, down.frame=NU
 		# KEGG annotations file
 		if(org == "HS"){file.annot <- HS.KEGG.file.annot}
 		if(org == "MM"){file.annot <- MM.KEGG.file.annot}
+		if(org == "RN"){file.annot <- RN.KEGG.file.annot}
 		if(org == "SC"){file.annot <- SC.KEGG.file.annot}
 		taxoname <- "KEGG"
 	
@@ -298,6 +301,7 @@ FunNet <- function(wd="", org="HS", two.lists=TRUE, up.frame=NULL, down.frame=NU
 	# GO annotations file BP
 		if(org == "HS"){file.annot <- HS.GO.DIR.BP.file.annot}
 		if(org == "MM"){file.annot <- MM.GO.DIR.BP.file.annot}
+		if(org == "RN"){file.annot <- RN.GO.DIR.BP.file.annot}
 		if(org == "SC"){file.annot <- SC.GO.DIR.BP.file.annot}
 
 		taxoname <- go.name[1]	# name of the GO branch considered for gene annotations
@@ -323,6 +327,7 @@ FunNet <- function(wd="", org="HS", two.lists=TRUE, up.frame=NULL, down.frame=NU
 	# GO annotations file CC
 		if(org == "HS"){file.annot <- HS.GO.DIR.CC.file.annot}
 		if(org == "MM"){file.annot <- MM.GO.DIR.CC.file.annot}
+		if(org == "RN"){file.annot <- RN.GO.DIR.CC.file.annot}
 		if(org == "SC"){file.annot <- SC.GO.DIR.CC.file.annot}
 
 		taxoname <- go.name[2]	# name of the GO branch considered for gene annotations
@@ -348,6 +353,7 @@ FunNet <- function(wd="", org="HS", two.lists=TRUE, up.frame=NULL, down.frame=NU
 	# GO annotations file MF
 		if(org == "HS"){file.annot <- HS.GO.DIR.MF.file.annot}
 		if(org == "MM"){file.annot <- MM.GO.DIR.MF.file.annot}
+		if(org == "RN"){file.annot <- RN.GO.DIR.MF.file.annot}
 		if(org == "SC"){file.annot <- SC.GO.DIR.MF.file.annot}
 
 		taxoname <- go.name[3]	# name of the GO branch considered for gene annotations
@@ -443,9 +449,9 @@ check.parameters <- function(parameter.list,coexp.matrix,up.frame,down.frame,ref
 
 	cat(paste("\n\tChecking parameters for inconsistencies... \n",sep=""))	
 
-	if(!(parameter.list$org %in% c("HS","MM","SC"))){
+	if(!(parameter.list$org %in% c("HS","MM","RN","SC"))){
 		cat(paste("\n\t\tParameter org = '",parameter.list$org,"' is incorrect!\n",sep=""))
-		cat(paste("\n\t\tPossible values: 'HS' | 'MM' | 'SC'\n",sep=""))
+		cat(paste("\n\t\tPossible values: 'HS' | 'MM' | 'RN' | 'SC'\n",sep=""))
 		cat(paste("\n\t\tPlease check again and restart FunNet.\n",sep=""))
 		stop("org")
 	}

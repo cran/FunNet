@@ -1,5 +1,5 @@
-\name{HS.locus.name}
-\alias{HS.locus.name}
+\name{RN.locus.name}
+\alias{RN.locus.name}
 \docType{data}
 \title{Internal routine or variable}
 \description{

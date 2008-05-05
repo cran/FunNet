@@ -2,7 +2,7 @@
           \alias{annotations}
           \title{Functional Analysis of Gene Co-expression Networks}
           \description{
-            This routine is close to a similar one belonging to the package FunCluster. The actual one, provided with the package FunNet, 
+            This routine is close to a similar one prowided within the package FunCluster. The one provided with the package FunNet 
             performs a slightly different automated extraction and update of the Gene Ontology & KEGG annotations which are needed for 
             FunNet analysis. The difference relies in the fact that additionally to the gene annotation data, extracted from the NCBI ressources,
             this routine provides also the ontological lattice of GO required by FunNet enrichment computation routine for specificity, 

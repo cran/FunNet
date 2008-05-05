@@ -3,40 +3,42 @@
           \title{Functional Analysis of Gene Co-expression Networks}
           \description{
             FunNet is an integrative tool for analyzing gene co-expression networks from 
-	    microarray data involving two abstraction levels: genes and biological themes. 
-	    A functional profiling technique using Gene Ontology & KEGG annotations is 
-	    applied to extract a list of significantly enriched biological themes from 
-	    microarray expression profiling data. Afterwards multiple-instance 
-	    representations are built to relate significant themes to their 
-	    transcriptional instances. A specific non-linear dynamical system model is 
-	    used to extract information about the proximity of relevant genomic themes 
-	    from the similarity of the expression profiles of their gene instances.
-	    Eventually an unsupervised multiple-instance clustering procedure is used 
-	    to identify the structure of the co-expression network composed from modules 
-	    of functionally related transcripts. A functional and a transcriptional image
-	    of the co-expression network are provided separately together with detailed 
-	    information on the network centrality of related transcripts and genomic themes.
+            microarray expression data. The analytic model implemented in this library
+            involves two abstraction layers: transcriptional and functional (biological roles). 
+            A functional profiling technique using Gene Ontology & KEGG annotations is 
+            applied to extract a list of relevant biological themes from 
+            microarray expression profiling data. Afterwards multiple-instance 
+            representations are built to relate significant themes to their 
+            transcriptional instances (i.e. the two layers of the model). An adapted
+            non-linear dynamical system model is used to quantify the proximity of relevant 
+            genomic themes based on the similarity of the expression profiles of their gene instances.
+            Eventually an unsupervised multiple-instance clustering procedure, relying on 
+            the two abstraction layers, is used to identify the structure of the co-expression
+            network composed from modules of functionally related transcripts. Functional 
+            and transcriptional maps of the co-expression network are provided separately
+            together with detailed information on the network centrality of related transcripts
+            and genomic themes.
           }
           \usage{
           FunNet(wd="", org="HS", two.lists=TRUE, up.frame=NULL, down.frame=NULL,
-	  	  	genes.frame=NULL, restrict=FALSE, ref.list=NULL, logged=TRUE,
-	  	  	discriminant=FALSE, go.bp=TRUE, go.cc=TRUE, go.mf=TRUE, kegg=TRUE,
-	  		annot.method="specificity", annot.details=TRUE, 
-	  	  	direct=FALSE, enriched=TRUE, fdr=NA, build.annot.net=TRUE,
-	  	  	coexp.matrix=NULL, coexp.method="spearman", estimate.th=FALSE, 
-	  	  	hard.th=NA, soft.th=NA, topological = FALSE, keep.sign=FALSE, level=NA, 
-	  	  	annot.clust.method="umilds", annot.prox.measure="unilat.pond.norm.mean",
-	  	  	test.recovery=FALSE, test.robust=FALSE, replace.annot=NA, 
-	  	  	build.gene.net=FALSE, gene.clust.method="hclust", gene.net.details=FALSE,
-			gene.clusters=NA, alpha=0.05, RV=0.90, sigma=NA, keep.rdata=FALSE, zip=TRUE)
+	  	genes.frame=NULL, restrict=FALSE, ref.list=NULL, logged=TRUE,
+	  	discriminant=FALSE, go.bp=TRUE, go.cc=TRUE, go.mf=TRUE, kegg=TRUE,
+	  	annot.method="specificity", annot.details=TRUE, 
+	  	direct=FALSE, enriched=TRUE, fdr=NA, build.annot.net=TRUE,
+	  	coexp.matrix=NULL, coexp.method="spearman", estimate.th=FALSE, 
+	  	hard.th=NA, soft.th=NA, topological = FALSE, keep.sign=FALSE, level=NA, 
+	  	annot.clust.method="umilds", annot.prox.measure="unilat.pond.norm.mean",
+	  	test.recovery=FALSE, test.robust=FALSE, replace.annot=NA, 
+	  	build.gene.net=FALSE, gene.clust.method="hclust", gene.net.details=FALSE,
+	  	gene.clusters=NA, alpha=0.05, RV=0.90, sigma=NA, keep.rdata=FALSE, zip=TRUE)
           }
           \arguments{
             \item{wd}{sets the working directory where the expression data files are to be found and 
             		where results are to be stored.}
             \item{org}{indicates the biological species to which analyzable transcript expression data is related; 
             		currently only three possibilities are available with FunNet: "HS" for human expression data,
-            		"MM" for mouse (Mus Musculus) expression data and "SC" for yeast (Saccharomyces Cerevisiae) 
-            		expression data. Default value is "HS".}
+            		"MM" for mouse (Mus Musculus) expression data, "RN" for rat (Rattus Norvegicus) expression data,
+            		and "SC" for yeast (Saccharomyces Cerevisiae) expression data. Default value is "HS".}
             \item{up.frame}{a dataframe containing expression data for up-regulated genes for the case where two lists 
             		of genes are analyzed comparatively (i.e. up- vs. down-regulated genes). The first column should 
             		contain the GeneID's of the analyzed genes (text data), while the other columns should provide expression 
@@ -170,60 +172,64 @@
           		the operating system are absolute requirements.
 
           Together with the FunNet algorithm this package provide also:\cr
-	            1. GO and KEGG annotations (as of February 2008) automatically extracted from their respective web resources\cr\cr
-	            2. The routine for the automated extraction and update of the functional annotations from their respective
-	            		web resources. The use of this routine is simple: \code{annotations(date.annot = "")}. Under common
-	            		circumstances these routine will provide up-to-date annotations, stored into environmental variables,
-	            		directly formatted for FunNet's use. Some errors may be seen when using this routine related to a
-	            		lack of availability of the GO annotations for the current month. In case of extraction errors, 
-	            		explained most usually by a delay in updating GO web servers, the release date can be expressly 
-	            		indicated (see \code{\link{annotations}}).\cr\cr
-	            3. Four test data sets (see examples below and the dedicated man pages). Two of these datasets are related to 
-	            		adipose tissue expression profiling in obese subjects at baseline and after a bariatric surgery. 
-	            		The other two are yeast datasets related to the cell cycle and DNA repairing processes induced by
-	            		irradiation.\cr
-	            		
-	            The format of the data should be respected in order to perform a successful analysis. The only transcript 
-	            		identification system acceptable for FunNet analysis is EntrezGene GeneID's. The transcript 
-	            		expression data should be organized in dataframes within one row for each transcript. The 
-	            		first column contains the transcript identifiers for each transcript and the rest of them 
-	            		the expression level of that transcript in each of the available microarray samples. 
-	            		See the provided test data for more details.\cr
-	  
-	            The results of the FunNet analysis of transcript expression data are stored as HTML, tab separated text or R 
-	            		data files in a "Results" subfolder of the working folder. For each type of available biological
-	            		annotations and for each list of transcript expression data to be analyzed (one or two), FunNet 
-	            		provides a ranked list with the significantly enriched annotating categories, as well as network 
-	            		structures as text files designed to be imported in Cytoscape for graphical analysis. 
-	            		Detailed findings on the terminological composition and transcript enrichment significance of the 
-	            		resulting functional clusters, as well as various network centrality measures are equally provided.}
+	    1. GO and KEGG annotations (as of February 2008) automatically extracted from their respective web resources\cr\cr
+	    2. The routine for the automated extraction and update of the functional annotations from their respective
+			web resources. The use of this routine is simple: \code{annotations(date.annot = "")}. Under common
+			circumstances these routine will provide up-to-date annotations, stored into environmental variables,
+			directly formatted for FunNet's use. Some errors may be seen when using this routine related to a
+			lack of availability of the GO annotations for the current month. In case of extraction errors, 
+			explained most usually by a delay in updating GO web servers, the release date can be expressly 
+			indicated (see \code{\link{annotations}}).\cr\cr
+	    3. Four test data sets (see examples below and the dedicated man pages). Two of these datasets are related to 
+			adipose tissue expression profiling in obese subjects at baseline and after a bariatric surgery. 
+			The other two are yeast datasets related to the cell cycle and DNA repairing processes induced by
+			irradiation.\cr
+
+	    The format of the data should be respected in order to perform a successful analysis. The only transcript 
+			identification system acceptable for FunNet analysis is EntrezGene GeneID's. The transcript 
+			expression data should be organized in dataframes within one row for each transcript. The 
+			first column contains the transcript identifiers for each transcript and the rest of them 
+			the expression level of that transcript in each of the available microarray samples. 
+			See the provided test data for more details.\cr
+
+	    The results of the FunNet analysis of transcript expression data are stored as HTML, tab separated text or R 
+			data files in a "Results" subfolder of the working folder. For each type of available biological
+			annotations and for each list of transcript expression data to be analyzed (one or two), FunNet 
+			provides a ranked list with the significantly enriched annotating categories, as well as network 
+			structures as text files designed to be imported in Cytoscape for graphical analysis. 
+			Detailed findings on the terminological composition and transcript enrichment significance of the 
+			resulting functional clusters, as well as various network centrality measures are equally provided.}
           \references{
           1. Henegar C, Tordjman J, Achard V, Lacasa D, Cremer I, Guerre-Millo M, Poitou C, Basdevant A,		
 	            	Stich V, Viguerie N, Langin D, Bedossa P, Zucker J-D, Clement K. Adipose tissue transcriptomic 
-	            	signature highlights the pathologic relevance of extracellular matrix in human obesity. In positive
-          		revision in Genome Biology journal (October 2007).
+	            	signature highlights the pathologic relevance of extracellular matrix in human obesity. 
+	            	Genome Biology 2008, 9(1):R14.
+	            	
+	  2. Henegar C, Clement K, and Zucker JD (2006). Unsupervised multiple-instance learning for functional profiling 
+	  		of genomic data. Lecture Notes in Computer Science: ECML 2006. 
+	  		Springer Berlin / Heidelberg, 4212/2006 : 186-197.
           		
-          2. Henegar C, Cancello R, Rome S, Vidal H, Clement K, Zucker JD. Clustering biological annotations and gene 
+          3. Henegar C, Cancello R, Rome S, Vidal H, Clement K, Zucker JD. Clustering biological annotations and gene 
           		expression data to identify putatively co-regulated biological processes. J Bioinform Comput Biol.
-          		2006 Aug;4(4) :833-52.
+          		2006 Aug;4(4):833-52.
           
-          3. Cancello R, Henegar C, Viguerie N, Taleb S, Poitou C, Rouault C, Coupaye M, Pelloux V, Hugol D, Bouillot 
+          4. Cancello R, Henegar C, Viguerie N, Taleb S, Poitou C, Rouault C, Coupaye M, Pelloux V, Hugol D, Bouillot 
           		JL, Bouloumie A, Barbatelli G, Cinti S, Svensson PA, Barsh GS, Zucker JD, Basdevant A, Langin D,
           		Clement K. Reduction of macrophage infiltration and chemoattractant gene expression changes in 
           		white adipose tissue of morbidly obese subjects after surgery-induced weight loss. 
           		Diabetes 2005; 54(8):2277-86.
           		
-          4. Zhang B, Horvath S. A general framework for weighted gene co-expression network analysis. Stat Appl 
+          5. Zhang B, Horvath S. A general framework for weighted gene co-expression network analysis. Stat Appl 
           		Genet Mol Biol 4 (2005) Article17
 
-          5. FunNet website: \url{http://corneliu.henegar.info/FunNet.htm}
+          6. FunNet website: \url{http://corneliu.henegar.info/FunNet.htm}
           }
           \note{
-	  This package is related to a paper submitted to the Genome Biology journal:          	
+	  This package is related to a paper published in the Genome Biology journal:          	
 		Henegar C, Tordjman J, Achard V, Lacasa D, Cremer I, Guerre-Millo M, Poitou C, Basdevant A,		
 		Stich V, Viguerie N, Langin D, Bedossa P, Zucker J-D, Clement K. Adipose tissue transcriptomic 
-		signature highlights the pathologic relevance of extracellular matrix in human obesity. In positive
-		revision in Genome Biology (October 2007).
+		signature highlights the pathologic relevance of extracellular matrix in human obesity. 
+		Genome Biology 2008, 9(1):R14.
           }
           \seealso{
             \code{\link{cluster}, \link{annotations}, link{FunCluster}}.
