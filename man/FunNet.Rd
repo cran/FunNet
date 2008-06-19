@@ -1,8 +1,8 @@
   \name{FunNet}
           \alias{FunNet}
-          \title{Functional Analysis of Gene Co-expression Networks}
+          \title{Integrative Functional Analysis of Transcriptional Networks}
           \description{
-            FunNet is an integrative tool for analyzing gene co-expression networks from 
+            FunNet is an integrative tool for analyzing gene co-expression networks built from 
             microarray expression data. The analytic model implemented in this library
             involves two abstraction layers: transcriptional and functional (biological roles). 
             A functional profiling technique using Gene Ontology & KEGG annotations is 
@@ -37,7 +37,7 @@
             		where results are to be stored.}
             \item{org}{indicates the biological species to which analyzable transcript expression data is related; 
             		currently only three possibilities are available with FunNet: "HS" for human expression data,
-            		"MM" for mouse (Mus Musculus) expression data, "RN" for rat (Rattus Norvegicus) expression data,
+            		"MM" for mouse (Mus Musculus) expression data, "RN" for rat (Rattus nNrvegicus) expression data,
             		and "SC" for yeast (Saccharomyces Cerevisiae) expression data. Default value is "HS".}
             \item{up.frame}{a dataframe containing expression data for up-regulated genes for the case where two lists 
             		of genes are analyzed comparatively (i.e. up- vs. down-regulated genes). The first column should 
@@ -220,15 +220,16 @@
           		Diabetes 2005; 54(8):2277-86.
           		
           5. Zhang B, Horvath S. A general framework for weighted gene co-expression network analysis. Stat Appl 
-          		Genet Mol Biol 4 (2005) Article17
+          		Genet Mol Biol 4 (2005) Article17.
 
-          6. FunNet website: \url{http://corneliu.henegar.info/FunNet.htm}
+          6. FunNet websites: \url{http://corneliu.henegar.info/FunNet.htm}, \url{http://www.funnet.ws},
+          		\url{http://www.funnet.info}
           }
           \note{
-	  This package is related to a paper published in the Genome Biology journal:          	
+	  This package is related essentially to a paper published in Genome Biology journal:          	
 		Henegar C, Tordjman J, Achard V, Lacasa D, Cremer I, Guerre-Millo M, Poitou C, Basdevant A,		
 		Stich V, Viguerie N, Langin D, Bedossa P, Zucker J-D, Clement K. Adipose tissue transcriptomic 
-		signature highlights the pathologic relevance of extracellular matrix in human obesity. 
+		signature highlights the pathologic relevance of extracellular matrix in human obesity.
 		Genome Biology 2008, 9(1):R14.
           }
           \seealso{
@@ -253,15 +254,15 @@
           ## most common use
           data(obese)
           FunNet(org="HS", two.lists=TRUE, up.frame=up.frame, down.frame=down.frame,
-	  	  	genes.frame=NULL, restrict=TRUE, ref.list=ref.list, logged=TRUE,
-	  	  	discriminant=TRUE, annot.method="specificity", annot.details=TRUE, 
-	  	  	direct=FALSE, enriched=TRUE, fdr=FALSE, build.annot.net=TRUE,
-	  	  	coexp.matrix=NULL, coexp.method="spearman", estimate.th=FALSE, 
-	  	  	hard.th=0.8, soft.th=NA, topological = FALSE, keep.sign=FALSE,
-	  	  	level=1, annot.clust.method="umilds", annot.prox.measure="dynamical",
-	  	  	test.recovery=FALSE, test.robust=FALSE, replace.annot=NA, 
-	  	  	build.gene.net=TRUE, gene.clust.method="hclust", gene.net.details=TRUE,
-			gene.clusters=NA, alpha=0.05, RV=0.90, sigma=NA)
-                   
+	  	genes.frame=NULL, restrict=TRUE, ref.list=ref.list, logged=TRUE,
+	  	discriminant=TRUE, go.bp=TRUE, go.cc=TRUE, go.mf=TRUE, kegg=TRUE,
+	  	annot.method="specificity", annot.details=TRUE, 
+	  	direct=FALSE, enriched=TRUE, fdr=NA, build.annot.net=TRUE,
+	  	coexp.matrix=NULL, coexp.method="spearman", estimate.th=FALSE, 
+	  	hard.th=0.8, soft.th=NA, topological = FALSE, keep.sign=FALSE, level=1, 
+	  	annot.clust.method="umilds", annot.prox.measure="dynamical",
+	  	test.recovery=FALSE, test.robust=FALSE, replace.annot=NA, 
+	  	build.gene.net=TRUE, gene.clust.method="hclust", gene.net.details=TRUE,
+	  	gene.clusters=NA, alpha=0.05, RV=0.90, sigma=NA, keep.rdata=FALSE, zip=TRUE)                   
           }}
           \keyword{cluster}

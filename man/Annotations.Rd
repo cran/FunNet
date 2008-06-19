@@ -1,8 +1,8 @@
   \name{Annotations}
           \alias{annotations}
-          \title{Functional Analysis of Gene Co-expression Networks}
+          \title{Integrative Functional Analysis of Transcriptional Networks}
           \description{
-            This routine is close to a similar one prowided within the package FunCluster. The one provided with the package FunNet 
+            This routine is close to a similar one belonging to the package FunCluster. The actual one, provided with the package FunNet, 
             performs a slightly different automated extraction and update of the Gene Ontology & KEGG annotations which are needed for 
             FunNet analysis. The difference relies in the fact that additionally to the gene annotation data, extracted from the NCBI ressources,
             this routine provides also the ontological lattice of GO required by FunNet enrichment computation routine for specificity, 
@@ -44,21 +44,29 @@
             }
           \references{
           1. Henegar C, Tordjman J, Achard V, Lacasa D, Cremer I, Guerre-Millo M, Poitou C, Basdevant A,		
-          		Stich V, Viguerie N, Langin D, Bedossa P, Zucker J-D, Clement K. Adipose tissue transcriptomic 
-          		signature highlights the pathologic relevance of extracellular matrix in human obesity. In positive
-          		revision in Genome Biology journal (October 2007).
-          
-          2. Henegar C, Cancello R, Rome S, Vidal H, Clement K, Zucker JD. Clustering biological annotations and gene 
-          		expression data to identify putatively co-regulated biological processes. J Bioinform Comput Biol.
-          		2006 Aug;4(4) :833-52.
-          
-          3. Cancello R, Henegar C, Viguerie N, Taleb S, Poitou C, Rouault C, Coupaye M, Pelloux V, Hugol D, Bouillot 
-          		JL, Bouloumie A, Barbatelli G, Cinti S, Svensson PA, Barsh GS, Zucker JD, Basdevant A, Langin D,
-          		Clement K. Reduction of macrophage infiltration and chemoattractant gene expression changes in 
-          		white adipose tissue of morbidly obese subjects after surgery-induced weight loss. 
-          		Diabetes 2005; 54(8):2277-86.
+			Stich V, Viguerie N, Langin D, Bedossa P, Zucker J-D, Clement K. Adipose tissue transcriptomic 
+			signature highlights the pathologic relevance of extracellular matrix in human obesity. 
+			Genome Biology 2008, 9(1):R14.
 
-          4. FunNet website: \url{http://corneliu.henegar.info/FunNet.htm}
+	  2. Henegar C, Clement K, and Zucker JD (2006). Unsupervised multiple-instance learning for functional profiling 
+			of genomic data. Lecture Notes in Computer Science: ECML 2006. 
+			Springer Berlin / Heidelberg, 4212/2006 : 186-197.
+
+	  3. Henegar C, Cancello R, Rome S, Vidal H, Clement K, Zucker JD. Clustering biological annotations and gene 
+			expression data to identify putatively co-regulated biological processes. J Bioinform Comput Biol.
+			2006 Aug;4(4):833-52.
+
+	  4. Cancello R, Henegar C, Viguerie N, Taleb S, Poitou C, Rouault C, Coupaye M, Pelloux V, Hugol D, Bouillot 
+			JL, Bouloumie A, Barbatelli G, Cinti S, Svensson PA, Barsh GS, Zucker JD, Basdevant A, Langin D,
+			Clement K. Reduction of macrophage infiltration and chemoattractant gene expression changes in 
+			white adipose tissue of morbidly obese subjects after surgery-induced weight loss. 
+			Diabetes 2005; 54(8):2277-86.
+
+	  5. Zhang B, Horvath S. A general framework for weighted gene co-expression network analysis. Stat Appl 
+			Genet Mol Biol 4 (2005) Article17.
+
+	  6. FunNet websites: \url{http://corneliu.henegar.info/FunNet.htm}, \url{http://www.funnet.ws},
+			\url{http://www.funnet.info}
           }
           \note{
           This package is related to a paper submitted to the Genome Biology journal:          	

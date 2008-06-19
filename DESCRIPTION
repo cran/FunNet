@@ -1,11 +1,11 @@
 Package: FunNet
-Version: 1.00-1
-Date: 2008-05-05
-Title: Functional Analysis of Gene Co-expression Networks 
+Version: 1.00-2
+Date: 2008-06-19
+Title: Integrative Functional Analysis of Transcriptional Networks 
 Author: Corneliu Henegar <corneliu@henegar.info>
 Maintainer: Corneliu Henegar <corneliu@henegar.info>
-Depends: R (>= 2.4.0), ade4, cluster, Hmisc, nlme, sna, Cairo
-Description: FunNet is an integrative tool for analyzing gene co-expression networks from 
+Depends: R (>= 2.5.0), ade4, cluster, Hmisc, nlme, sna, Cairo
+Description: FunNet is an integrative tool for analyzing gene co-expression networks built from 
 		microarray expression data. The analytic model implemented in this library
 		involves two abstraction layers: transcriptional and functional (biological roles). 
 		A functional profiling technique using Gene Ontology & KEGG annotations is 
@@ -26,4 +26,4 @@ URL: http://corneliu.henegar.info/FunNet.htm,
 	http://www.geneontology.org/GO.tools.microarray.shtml#funnet,
 	http://www.funnet.info,
 	http://www.funnet.ws
-Packaged: Mon May  5 14:10:48 2008; root
+Packaged: Thu Jun 19 15:15:46 2008; chenegar

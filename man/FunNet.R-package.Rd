@@ -1,9 +1,9 @@
 \name{FunNet.R-package}
 \alias{FunNet.R-package}
 \docType{package}
-\title{Functional Analysis of Gene Co-expression Networks}
+\title{Integrative Functional Analysis of Transcriptional Networks}
 \description{
-          FunNet is an integrative tool for analyzing gene co-expression networks from 
+          FunNet is an integrative tool for analyzing gene co-expression networks built from 
 	  microarray expression data. The analytic model implemented in this library
 	  involves two abstraction layers: transcriptional and functional (biological roles). 
 	  A functional profiling technique using Gene Ontology & KEGG annotations is 
@@ -56,28 +56,29 @@
 }
 \references{
           1. Henegar C, Tordjman J, Achard V, Lacasa D, Cremer I, Guerre-Millo M, Poitou C, Basdevant A,		
-	            	Stich V, Viguerie N, Langin D, Bedossa P, Zucker J-D, Clement K. Adipose tissue transcriptomic 
-	            	signature highlights the pathologic relevance of extracellular matrix in human obesity. 
-	            	Genome Biology 2008, 9(1):R14.
-	            	
-	  2. Henegar C, Clement K, and Zucker JD (2006). Unsupervised multiple-instance learning for functional profiling 
-	  		of genomic data. Lecture Notes in Computer Science: ECML 2006. 
-	  		Springer Berlin / Heidelberg, 4212/2006 : 186-197.
-          		
-          3. Henegar C, Cancello R, Rome S, Vidal H, Clement K, Zucker JD. Clustering biological annotations and gene 
-          		expression data to identify putatively co-regulated biological processes. J Bioinform Comput Biol.
-          		2006 Aug;4(4):833-52.
-          
-          4. Cancello R, Henegar C, Viguerie N, Taleb S, Poitou C, Rouault C, Coupaye M, Pelloux V, Hugol D, Bouillot 
-          		JL, Bouloumie A, Barbatelli G, Cinti S, Svensson PA, Barsh GS, Zucker JD, Basdevant A, Langin D,
-          		Clement K. Reduction of macrophage infiltration and chemoattractant gene expression changes in 
-          		white adipose tissue of morbidly obese subjects after surgery-induced weight loss. 
-          		Diabetes 2005; 54(8):2277-86.
-          		
-          5. Zhang B, Horvath S. A general framework for weighted gene co-expression network analysis. Stat Appl 
-          		Genet Mol Biol 4 (2005) Article17
+			Stich V, Viguerie N, Langin D, Bedossa P, Zucker J-D, Clement K. Adipose tissue transcriptomic 
+			signature highlights the pathologic relevance of extracellular matrix in human obesity. 
+			Genome Biology 2008, 9(1):R14.
 
-          6. FunNet website: \url{http://corneliu.henegar.info/FunNet.htm}
+	  2. Henegar C, Clement K, and Zucker JD (2006). Unsupervised multiple-instance learning for functional profiling 
+			of genomic data. Lecture Notes in Computer Science: ECML 2006. 
+			Springer Berlin / Heidelberg, 4212/2006 : 186-197.
+
+	  3. Henegar C, Cancello R, Rome S, Vidal H, Clement K, Zucker JD. Clustering biological annotations and gene 
+			expression data to identify putatively co-regulated biological processes. J Bioinform Comput Biol.
+			2006 Aug;4(4):833-52.
+
+	  4. Cancello R, Henegar C, Viguerie N, Taleb S, Poitou C, Rouault C, Coupaye M, Pelloux V, Hugol D, Bouillot 
+			JL, Bouloumie A, Barbatelli G, Cinti S, Svensson PA, Barsh GS, Zucker JD, Basdevant A, Langin D,
+			Clement K. Reduction of macrophage infiltration and chemoattractant gene expression changes in 
+			white adipose tissue of morbidly obese subjects after surgery-induced weight loss. 
+			Diabetes 2005; 54(8):2277-86.
+
+	  5. Zhang B, Horvath S. A general framework for weighted gene co-expression network analysis. Stat Appl 
+			Genet Mol Biol 4 (2005) Article17.
+
+	  6. FunNet websites: \url{http://corneliu.henegar.info/FunNet.htm}, \url{http://www.funnet.ws},
+			\url{http://www.funnet.info}
 }
 \keyword{ cluster }
 
@@ -88,16 +89,17 @@
           \dontrun{
           ## most common use
           data(obese)
-	  FunNet(org="HS", two.lists=TRUE, up.frame=up.frame, down.frame=down.frame,
-		genes.frame=NULL, restrict=TRUE, ref.list=ref.list, logged=TRUE,
-		discriminant=TRUE, annot.method="specificity", annot.details=TRUE, 
-		direct=FALSE, enriched=TRUE, fdr=FALSE, build.annot.net=TRUE,
-		coexp.matrix=NULL, coexp.method="spearman", estimate.th=FALSE, 
-		hard.th=0.8, soft.th=NA, topological = FALSE, keep.sign=FALSE,
-		level=1, annot.clust.method="umilds", annot.prox.measure="dynamical",
-		test.recovery=FALSE, test.robust=FALSE, replace.annot=NA, 
-		build.gene.net=TRUE, gene.clust.method="hclust", gene.net.details=TRUE,
-		gene.clusters=NA, alpha=0.05, RV=0.90, sigma=NA)
+          FunNet(org="HS", two.lists=TRUE, up.frame=up.frame, down.frame=down.frame,
+	  	genes.frame=NULL, restrict=TRUE, ref.list=ref.list, logged=TRUE,
+	  	discriminant=TRUE, go.bp=TRUE, go.cc=TRUE, go.mf=TRUE, kegg=TRUE,
+	  	annot.method="specificity", annot.details=TRUE, 
+	  	direct=FALSE, enriched=TRUE, fdr=NA, build.annot.net=TRUE,
+	  	coexp.matrix=NULL, coexp.method="spearman", estimate.th=FALSE, 
+	  	hard.th=0.8, soft.th=NA, topological = FALSE, keep.sign=FALSE, level=1, 
+	  	annot.clust.method="umilds", annot.prox.measure="dynamical",
+	  	test.recovery=FALSE, test.robust=FALSE, replace.annot=NA, 
+	  	build.gene.net=TRUE, gene.clust.method="hclust", gene.net.details=TRUE,
+	  	gene.clusters=NA, alpha=0.05, RV=0.90, sigma=NA, keep.rdata=FALSE, zip=TRUE)                   
 
           ## the following example forces the use of a previous GO release 
           (e.g. October 2007) for updating annotations
