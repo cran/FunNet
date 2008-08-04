@@ -1,5 +1,5 @@
-\name{HS.locus.name}
-\alias{HS.locus.name}
+\name{normalize.connect}
+\alias{normalize.connect}
 \docType{data}
 \title{Internal routine or variable}
 \description{

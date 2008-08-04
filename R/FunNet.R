@@ -7,7 +7,7 @@
 
 .packageName <- "FunNet"
 
-funnet.version <- "1.00-2"
+funnet.version <- "1.00-3"
 
 try(Sys.setlocale("LC_ALL", "en_US.utf8"), silent = TRUE)
 
@@ -77,6 +77,7 @@ FunNet <- function(wd="", org="HS", two.lists=TRUE, up.frame=NULL, down.frame=NU
 	
 	if(discriminant){
 		two.lists <- TRUE
+		restrict <- TRUE
 	}
 	
 	if(!is.null(up.frame) & !is.null(down.frame) & is.null(genes.frame)){
@@ -121,15 +122,6 @@ FunNet <- function(wd="", org="HS", two.lists=TRUE, up.frame=NULL, down.frame=NU
 	
 	# prepare expression data
 
-	if(restrict & !discriminant){	# specifing a reference list of genes for the calculation of annotations enrichment
-		
-		#if(is.null(ref.list)){try(ref.list <- read.table(paste(wd,"/","ref.txt",sep=""),sep="\t"))}
-
-		ref.list <- filter.genes(restrict=TRUE,ref.list=ref.list,locus.name=locus.name)
-
-	}else if(!restrict){
-		ref.list <- NULL
-	}
 
 	if(two.lists){	# when 2 lists of genes are analysed in oposition (UP & DOWN)
 
@@ -141,8 +133,12 @@ FunNet <- function(wd="", org="HS", two.lists=TRUE, up.frame=NULL, down.frame=NU
 		down.frame <- up.down$down.frame
 		rm(up.down)
 		
-		if(restrict & discriminant){
+		if(discriminant){	# specifing a reference list of genes for the calculation of annotations enrichment
 			ref.list <- c(as.character(up.frame[,1]),as.character(down.frame[,1]))
+		}else if(restrict & !discriminant){
+			ref.list <- filter.genes(restrict=TRUE,ref.list=ref.list,locus.name=locus.name)
+		}else if(!restrict & !discriminant){
+			ref.list <- NULL
 		}
 		
 
@@ -150,6 +146,12 @@ FunNet <- function(wd="", org="HS", two.lists=TRUE, up.frame=NULL, down.frame=NU
 		#if(is.null(genes.frame)){genes.frame <- read.table(paste(wd,"/","genes.txt",sep=""),sep="\t")}	# a unique data frame of genes
 
 		genes.frame <- filter.genes(genes.frame=genes.frame,two.lists=FALSE,locus.name=locus.name)
+		
+		if(restrict){
+			ref.list <- filter.genes(restrict=TRUE,ref.list=ref.list,locus.name=locus.name)
+		}else{
+			ref.list <- NULL
+		}
 
 	}
 	
@@ -256,7 +258,7 @@ FunNet <- function(wd="", org="HS", two.lists=TRUE, up.frame=NULL, down.frame=NU
 			coexp.matrix[coexp.matrix < hard.th] <- 0
 		}
 
-		try(save(coexp.matrix, parameter.list, file=paste(getwd(),"/",results.dir,"/","gene_adj_matrix.RData",sep="")))
+		try(save(coexp.matrix,sign.matrix, parameter.list, file=paste(getwd(),"/",results.dir,"/","gene_adj_matrix.RData",sep="")))
 	}
 	
 
@@ -390,7 +392,7 @@ FunNet <- function(wd="", org="HS", two.lists=TRUE, up.frame=NULL, down.frame=NU
 		colnames(net.matrix) <- locus.symbol[colnames(net.matrix),2]
 
 		try(cyto.sym(net.matrix=net.matrix,file.net=paste(getwd(),"/",results.dir,"/","co-expression_net.txt",sep=""),
-			diagonal=NULL,thresh=NULL))
+			diagonal=FALSE,thresh=NULL))
 		rm(net.matrix)
 
 		try(centrality <- genes.centrality(adj.matrix=coexp.matrix,clusters=clusters,taxoname=taxoname,locus.symbol=locus.symbol,
@@ -1406,12 +1408,12 @@ annotate.for.net <- function(file.annot,fdr=FALSE,go=TRUE,direct=FALSE,taxoname,
 
 	if(restrict & !is.null(ref.list)){
 
-		file.annot <- file.annot[as.character(file.annot[,1]) %in% as.character(ref.list),]
+		file.annot <- file.annot[as.character(file.annot[,1]) %in% as.character(ref.list[,1]),]
 	
 	}
 	
 	file.annot <- file.annot[as.character(file.annot[,2]) %in% as.character(terms.name[,1]),]
-	file.annot <- file.annot[(!file.annot[,2] %in% c("GO:0008150","GO:0000004","GO:0007582","GO:0005575","GO:0008372","GO:0003674","GO:0005554")),]
+	file.annot <- file.annot[!(file.annot[,2] %in% c("GO:0008150","GO:0000004","GO:0007582","GO:0005575","GO:0008372","GO:0003674","GO:0005554")),]
 	
 	ref.annot <- unique(as.character(file.annot[,1])) # list of all annotated genes within the considered taxonomical system among the reference list
 	pop.total <- length(ref.annot)	# the number of annotated ref genes
@@ -1432,7 +1434,6 @@ if(go & annot.method=="specificity"){	# GO annotation on separate ontological le
 	#go.tree <- go.tree[go.tree[,2] %in% as.vector(terms.name[,1]),]
 			
 	lowest.level <- as.character(go.tree[!(as.character(go.tree[,1]) %in% as.character(go.tree[,2])),1])	# GO terms which are on the lowest level of GO available
-	#lowest.level <- lowest.level[!(lowest.level %in% c("GO:0008150","GO:0000004","GO:0007582","GO:0005575","GO:0008372","GO:0003674","GO:0005554"))]
 	
 	if(nrow(file.annot) > 0 && !is.null(genes.frame)){
 		
@@ -2780,9 +2781,9 @@ genes.centrality <- function(adj.matrix,clusters=NULL,taxoname,locus.symbol=NULL
 		colnames(adj.matrix.connect) <- locus.symbol[colnames(adj.matrix.connect),2]
 
 		cyto.sym(net.matrix=adj.matrix.annot,file.net=paste(getwd(),"/",results.dir,"/",taxoname,"_annotated_genes_net.txt",sep=""),
-			diagonal=NULL,thresh=NULL)
+			diagonal=FALSE,thresh=NULL)
 		cyto.sym(net.matrix=adj.matrix.connect,file.net=paste(getwd(),"/",results.dir,"/",taxoname,"_connected_genes_net.txt",sep=""),
-			diagonal=NULL,thresh=NULL)
+			diagonal=FALSE,thresh=NULL)
 
 		centrality <- matrix(NA,nrow(adj.matrix),8)
 		rownames(centrality) <- rownames(adj.matrix)
@@ -3299,7 +3300,12 @@ cytoscape.two <- function(clusters,file.net,file.net.info,file.param,up.annot.ma
 	colnames(annot.proximity) <- clusters$terms.name[colnames(annot.proximity),2]
 	rownames(annot.proximity) <- clusters$terms.name[rownames(annot.proximity),2]
 	
-	cyto.sym(net.matrix=annot.proximity,file.net=file.net,thresh=threshold)
+	#### normalize the connectivity matrix
+	norm.connect <- normalize.connect(clusters=clusters)
+	norm.connect$strength.matrix <- norm.connect$strength.matrix[rownames(annot.proximity),colnames(annot.proximity)]
+	norm.connect$intra.matrix <- norm.connect$intra.matrix[rownames(annot.proximity),colnames(annot.proximity)]
+	
+	cyto.sym(net.matrix=annot.proximity,file.net=file.net,thresh=threshold,diagonal=FALSE,norm.connect=norm.connect)
 	
 	up.down <- as.vector(matrix(NA,length(clusters$best.partition),1))
 	names(up.down) <- names(clusters$best.partition)
@@ -3338,17 +3344,21 @@ cytoscape.two <- function(clusters,file.net,file.net.info,file.param,up.annot.ma
 	colnames(centrality) <- c("degree","scaled_degree","betweenness","scaled_betweenness")
 	
 	if(annot.clust.method %in% c("umilds","spectral")){
-		centrality[,1] <- degree(adj.matrix, gmode="graph", diag=FALSE, rescale=FALSE)
-		centrality[,2] <- degree(adj.matrix, gmode="graph", diag=FALSE, rescale=TRUE)
-		centrality[,3] <- betweenness(adj.matrix, gmode="graph", diag=FALSE, cmode="undirected", rescale=FALSE)
-		centrality[,4] <- betweenness(adj.matrix, gmode="graph", diag=FALSE, cmode="undirected", rescale=TRUE)
+		centrality[,"degree"] <- degree(adj.matrix, gmode="graph", diag=FALSE, rescale=FALSE)
+		centrality[,"scaled_degree"] <- degree(adj.matrix, gmode="graph", diag=FALSE, rescale=TRUE)
+		centrality[,"betweenness"] <- betweenness(adj.matrix, gmode="graph", diag=FALSE, cmode="undirected", rescale=FALSE)
+		centrality[,"scaled_betweenness"] <- betweenness(adj.matrix, gmode="graph", diag=FALSE, cmode="undirected", rescale=TRUE)
 	}else if(annot.clust.method=="ucknn"){
-		centrality[,1] <- degree(adj.matrix, gmode="digraph", diag=FALSE, rescale=FALSE)
-		centrality[,2] <- degree(adj.matrix, gmode="digraph", diag=FALSE, rescale=TRUE)
-		centrality[,3] <- betweenness(adj.matrix, gmode="digraph", diag=FALSE, cmode="directed", rescale=FALSE)
-		centrality[,4] <- betweenness(adj.matrix, gmode="digraph", diag=FALSE, cmode="directed", rescale=TRUE)
+		centrality[,"degree"] <- degree(adj.matrix, gmode="digraph", diag=FALSE, rescale=FALSE)
+		centrality[,"scaled_degree"] <- degree(adj.matrix, gmode="digraph", diag=FALSE, rescale=TRUE)
+		centrality[,"betweenness"] <- betweenness(adj.matrix, gmode="digraph", diag=FALSE, cmode="directed", rescale=FALSE)
+		centrality[,"scaled_betweenness"] <- betweenness(adj.matrix, gmode="digraph", diag=FALSE, cmode="directed", rescale=TRUE)
 	}
-		
+	
+	
+	centrality[,"scaled_betweenness"][is.na(centrality[,"scaled_betweenness"])] <- 0
+	centrality[,"scaled_betweenness"][centrality[,"scaled_betweenness"] == 0] <- (100 - sum(centrality[,"scaled_betweenness"]))/length(centrality[,"scaled_betweenness"][centrality[,"scaled_betweenness"] == 0])
+	
 	annot.info <- data.frame(rownames(centrality),clusters$best.partition[rownames(centrality)],up.down[rownames(centrality)],centrality)
 	write.table(annot.info,file=file.net.info,col.names=c("name","module","up(1)_down(0)",colnames(centrality)),row.names=F,sep="\t")
 	
@@ -3376,8 +3386,14 @@ cytoscape.one <- function(clusters,file.net,file.net.info,file.param,terms.name,
 	colnames(annot.proximity) <- clusters$terms.name[colnames(annot.proximity),2]
 	rownames(annot.proximity) <- clusters$terms.name[rownames(annot.proximity),2]
 	
-	cyto.sym(net.matrix=annot.proximity,file.net=file.net,thresh=threshold)
+	#### normalize the connectivity matrix
+	norm.connect <- normalize.connect(clusters=clusters)
+	norm.connect$strength.matrix <- norm.connect$strength.matrix[rownames(annot.proximity),colnames(annot.proximity)]
+	norm.connect$intra.matrix <- norm.connect$intra.matrix[rownames(annot.proximity),colnames(annot.proximity)]
 		
+	cyto.sym(net.matrix=annot.proximity,file.net=file.net,thresh=threshold,diagonal=FALSE,norm.connect=norm.connect)
+	
+	
 	adj.matrix <- clusters$annot.proximity
 
 	rownames(adj.matrix) <- terms.name[rownames(adj.matrix),2]
@@ -3388,18 +3404,20 @@ cytoscape.one <- function(clusters,file.net,file.net.info,file.param,terms.name,
 	colnames(centrality) <- c("degree","scaled_degree","betweenness","scaled_betweenness")
 
 	if(annot.clust.method %in% c("umilds","spectral")){
-		centrality[,1] <- degree(adj.matrix, gmode="graph", diag=FALSE, rescale=FALSE)
-		centrality[,2] <- degree(adj.matrix, gmode="graph", diag=FALSE, rescale=TRUE)
-		centrality[,3] <- betweenness(adj.matrix, gmode="graph", diag=FALSE, cmode="undirected", rescale=FALSE)
-		centrality[,4] <- betweenness(adj.matrix, gmode="graph", diag=FALSE, cmode="undirected", rescale=TRUE)
+		centrality[,"degree"] <- degree(adj.matrix, gmode="graph", diag=FALSE, rescale=FALSE)
+		centrality[,"scaled_degree"] <- degree(adj.matrix, gmode="graph", diag=FALSE, rescale=TRUE)
+		centrality[,"betweenness"] <- betweenness(adj.matrix, gmode="graph", diag=FALSE, cmode="undirected", rescale=FALSE)
+		centrality[,"scaled_betweenness"] <- betweenness(adj.matrix, gmode="graph", diag=FALSE, cmode="undirected", rescale=TRUE)
 	}else if(annot.clust.method=="ucknn"){
-		centrality[,1] <- degree(adj.matrix, gmode="digraph", diag=FALSE, rescale=FALSE)
-		centrality[,2] <- degree(adj.matrix, gmode="digraph", diag=FALSE, rescale=TRUE)
-		centrality[,3] <- betweenness(adj.matrix, gmode="digraph", diag=FALSE, cmode="directed", rescale=FALSE)
-		centrality[,4] <- betweenness(adj.matrix, gmode="digraph", diag=FALSE, cmode="directed", rescale=TRUE)
+		centrality[,"degree"] <- degree(adj.matrix, gmode="digraph", diag=FALSE, rescale=FALSE)
+		centrality[,"scaled_degree"] <- degree(adj.matrix, gmode="digraph", diag=FALSE, rescale=TRUE)
+		centrality[,"betweenness"] <- betweenness(adj.matrix, gmode="digraph", diag=FALSE, cmode="directed", rescale=FALSE)
+		centrality[,"scaled_betweenness"] <- betweenness(adj.matrix, gmode="digraph", diag=FALSE, cmode="directed", rescale=TRUE)
 	}
-
-		
+	
+	centrality[,"scaled_betweenness"][is.na(centrality[,"scaled_betweenness"])] <- 0
+	centrality[,"scaled_betweenness"][centrality[,"scaled_betweenness"] == 0] <- (100 - sum(centrality[,"scaled_betweenness"]))/length(centrality[,"scaled_betweenness"][centrality[,"scaled_betweenness"] == 0])
+			
 	annot.info <- data.frame(rownames(centrality),clusters$best.partition[rownames(centrality)],centrality)
 	write.table(annot.info,file=file.net.info,col.names=c("name","module",colnames(centrality)),row.names=F,sep="\t")
 	
@@ -3413,22 +3431,44 @@ cytoscape.one <- function(clusters,file.net,file.net.info,file.param,terms.name,
 
 # writing a Cytoscape format net file
 
-cyto.sym <- function(net.matrix,file.net,diagonal=NULL,thresh=NULL){
+cyto.sym <- function(net.matrix,file.net,diagonal=FALSE,thresh=NULL,link.type="pp",norm.connect=NULL){
 	
-	if(is.null(diagonal)){diag(net.matrix) <- 0}
+	if(!diagonal){diag(net.matrix) <- 0}
 	
+	# file header
+	if(!(is.null(norm.connect))){
+		write(paste("node_1","link_type",
+				"node_2","link_strength","normalized_strength","intra_modular_link",sep="\t"),
+				file = file.net,append=TRUE)
+	}else{
+		write(paste("node_1","link_type",
+				"node_2","link_strength",sep="\t"),
+				file = file.net,append=TRUE)
+	}
+	
+	# file content
 	for (i in 1:dim(net.matrix)[1]) {
-		for (j in 1:dim(net.matrix)[2]) {
+		for (j in i:dim(net.matrix)[2]) {
 			if(is.null(thresh)){
-				if(net.matrix[i,j] != 0){
-					write(paste(dimnames(net.matrix)[[1]][i],"pp",
+				if(net.matrix[i,j] != 0 & !(is.null(norm.connect))){
+					write(paste(dimnames(net.matrix)[[1]][i],link.type,
+							dimnames(net.matrix)[[2]][j],net.matrix[i,j],norm.connect$strength.matrix[i,j],norm.connect$intra.matrix[i,j],sep="\t"),
+							file = file.net,append=TRUE)
+				}else if(net.matrix[i,j] != 0){
+					write(paste(dimnames(net.matrix)[[1]][i],link.type,
 							dimnames(net.matrix)[[2]][j],net.matrix[i,j],sep="\t"),
 							file = file.net,append=TRUE)
 				}
 			}else if(abs(net.matrix[i,j]) >= thresh){
-				write(paste(dimnames(net.matrix)[[1]][i],"pp",
-						dimnames(net.matrix)[[2]][j],net.matrix[i,j],sep="\t"),
-						file = file.net,append=TRUE)
+				if(net.matrix[i,j] != 0 & !(is.null(norm.connect))){
+					write(paste(dimnames(net.matrix)[[1]][i],link.type,
+							dimnames(net.matrix)[[2]][j],net.matrix[i,j],norm.connect$strength.matrix[i,j],norm.connect$intra.matrix[i,j],sep="\t"),
+							file = file.net,append=TRUE)
+				}else if(net.matrix[i,j] != 0){
+					write(paste(dimnames(net.matrix)[[1]][i],link.type,
+							dimnames(net.matrix)[[2]][j],net.matrix[i,j],sep="\t"),
+							file = file.net,append=TRUE)
+				}
 			}
 		}
 	}
@@ -3437,6 +3477,81 @@ cyto.sym <- function(net.matrix,file.net,diagonal=NULL,thresh=NULL){
 
 }
 
+
+# routine for normalizing the connectivity matrix
+
+normalize.connect <- function(clusters=NULL){
+
+	strength.matrix <- NULL
+	intra.matrix <- NULL
+	
+	
+	if(!is.null(clusters)){
+		term.cluster <- clusters$term.cluster
+		annot.proximity <- clusters$annot.proximity
+		terms.name <- clusters$terms.name
+		terms.name <- terms.name[rownames(annot.proximity),]
+		rownames(annot.proximity) <- terms.name[rownames(annot.proximity),2]
+		colnames(annot.proximity) <- terms.name[colnames(annot.proximity),2]
+		
+		betw <- betweenness(annot.proximity, gmode="graph", diag=FALSE, cmode="undirected", rescale=FALSE)
+		names(betw) <- rownames(annot.proximity)
+		betw[betw==0] <- 1
+		
+		annot.proximity <- t(annot.proximity*betw)*betw
+
+		strength.matrix <- matrix(0,nrow(annot.proximity),ncol(annot.proximity))
+		dimnames(strength.matrix) <- dimnames(annot.proximity)
+
+		intra.matrix <- matrix(0,nrow(annot.proximity),ncol(annot.proximity))
+		dimnames(intra.matrix) <- dimnames(annot.proximity)
+		
+
+		for(i in 1:length(term.cluster)){
+
+			prox.matrix <- annot.proximity[term.cluster[[i]],term.cluster[[i]]]
+			med <- median(prox.matrix[upper.tri(prox.matrix)])
+			upperquart <- sort(prox.matrix[upper.tri(prox.matrix)],decreasing=TRUE)[ceiling(length(prox.matrix[upper.tri(prox.matrix)])/4)]
+			upperdec <- sort(prox.matrix[upper.tri(prox.matrix)],decreasing=TRUE)[ceiling(length(prox.matrix[upper.tri(prox.matrix)])/10)]
+			upperfive <- sort(prox.matrix[upper.tri(prox.matrix)],decreasing=TRUE)[ceiling(length(prox.matrix[upper.tri(prox.matrix)])/20)]
+			
+			strength.matrix[rownames(prox.matrix),colnames(prox.matrix)][prox.matrix < med] <- 0
+			strength.matrix[rownames(prox.matrix),colnames(prox.matrix)][prox.matrix >= med] <- 1
+			strength.matrix[rownames(prox.matrix),colnames(prox.matrix)][prox.matrix >= upperquart] <- 2
+			strength.matrix[rownames(prox.matrix),colnames(prox.matrix)][prox.matrix >= upperdec] <- 3
+			strength.matrix[rownames(prox.matrix),colnames(prox.matrix)][prox.matrix >= upperfive] <- 4
+			
+			test.connect <- strength.matrix[rownames(prox.matrix),colnames(prox.matrix)]
+			diag(test.connect) <- 0
+			test.connect <- apply(test.connect,1,sum)
+			if(min(test.connect) == 0){			
+				for(j in 1:length(test.connect)){
+					if(test.connect[j]==0){
+						strength.matrix[rownames(prox.matrix),colnames(prox.matrix)][j,prox.matrix[j,]==max(prox.matrix[j,])] <- 1
+						strength.matrix[rownames(prox.matrix),colnames(prox.matrix)][prox.matrix[,j]==max(prox.matrix[,j]),j] <- 1
+					}
+				}
+			}
+
+			intra.matrix[rownames(prox.matrix),colnames(prox.matrix)] <- 1
+		}
+
+		med <- median(annot.proximity[intra.matrix == 0])
+		upperquart <- sort(annot.proximity[intra.matrix == 0],decreasing=TRUE)[ceiling(length(annot.proximity[intra.matrix == 0])/4)]
+		upperdec <- sort(annot.proximity[intra.matrix == 0],decreasing=TRUE)[ceiling(length(annot.proximity[intra.matrix == 0])/10)]
+		upperfive <- sort(annot.proximity[intra.matrix == 0],decreasing=TRUE)[ceiling(length(annot.proximity[intra.matrix == 0])/20)]
+			
+		strength.matrix[intra.matrix == 0 & annot.proximity < med] <- 0
+		strength.matrix[intra.matrix == 0 & annot.proximity >= med] <- 1
+		strength.matrix[intra.matrix == 0 & annot.proximity >= upperquart] <- 2
+		strength.matrix[intra.matrix == 0 & annot.proximity >= upperdec] <- 3
+		strength.matrix[intra.matrix == 0 & annot.proximity >= upperfive] <- 4
+		
+	}
+	
+	return(list(strength.matrix=strength.matrix,intra.matrix=intra.matrix))	
+
+}
 
 
 
@@ -3949,7 +4064,7 @@ profil.plot.two <- function(up.annot=NULL, down.annot=NULL, terms.name=NULL, tax
 						if(length(right)>12){right <- right[1:12]
 									wdth <- 12}
 						if(compute.dim){
-							max.left_right <- max(c(nchar(terms.name[names(left),2]),nchar(terms.name[names(right),2])),na.rm=TRUE)
+							max.left_right <- max(c(nchar(terms.name[names(left),2]),nchar(terms.name[names(right),2]),nchar("Transcriptional domain coverage (%)")),na.rm=TRUE)
 							width <- 18.5*max.left_right
 							if(width < 600){width <- 600}
 						
@@ -4071,7 +4186,7 @@ profil.plot.two <- function(up.annot=NULL, down.annot=NULL, terms.name=NULL, tax
 					if(length(right)>12){right <- right[1:12]
 								wdth <- 12}
 					if(compute.dim){
-						max.left_right <- max(c(nchar(terms.name[names(left),2]),nchar(terms.name[names(right),2])),na.rm=TRUE)
+						max.left_right <- max(c(nchar(terms.name[names(left),2]),nchar(terms.name[names(right),2]),nchar("Transcriptional domain coverage (%)")),na.rm=TRUE)
 						width <- 18.5*max.left_right
 						if(width < 600){width <- 600}
 					
@@ -4228,7 +4343,7 @@ profil.plot.one <- function(genes.annot=NULL, terms.name=NULL, taxoname=NULL, he
 									wdth <- 12}
 						
 						if(compute.dim){
-							max.right <- max(nchar(terms.name[names(right),2]))
+							max.right <- max(c(nchar(terms.name[names(right),2]),nchar("Transcriptional domain coverage (%)")))
 							width <- 9.5*max.right
 							if(width < 300){width <- 300}
 						
@@ -4301,7 +4416,7 @@ profil.plot.one <- function(genes.annot=NULL, terms.name=NULL, taxoname=NULL, he
 					if(length(right)>12){right <- right[1:12]
 								wdth <- 12}
 					if(compute.dim){
-						max.right <- max(nchar(terms.name[names(right),2]))
+						max.right <- max(c(nchar(terms.name[names(right),2]),nchar("Transcriptional domain coverage (%)")))
 						width <- 9.5*max.right
 						if(width < 300){height <- 300}
 					
@@ -4550,7 +4665,7 @@ central.plot.two <- function(up.annot=NULL, down.annot=NULL, clusters=NULL, taxo
 		}
 		
 		if(compute.dim){
-			max.left_right <- max(c(nchar(bar.label.left),nchar(bar.label.right)))
+			max.left_right <- max(c(nchar(bar.label.left),nchar(bar.label.right),nchar("Betweenness centrality (%)")))
 			width <- 18.5*max.left_right
 			if(width < 600){width <- 600}
 		
@@ -4815,7 +4930,7 @@ central.plot.one <- function(genes.annot=NULL, clusters=NULL, taxoname=NULL, hei
 		}
 		
 		if(compute.dim){
-			max.right <- max(nchar(bar.label.right))
+			max.right <- max(c(nchar(bar.label.right),nchar("Betweenness centrality (%)")))
 			width <- 9.5*max.right
 			if(width < 300){height <- 300}
 		
@@ -5175,7 +5290,7 @@ fdr.adjust <- function(pvalues, qlevel=0.05, method="original", adjust=NULL){
 
 
 
-# ECML-2006 routines used to calculate mutual information coefficient (MI) between 2 genes and performs permutations of gene expression data in order 
+# ECML-2006 paper routines used to calculate mutual information coefficient (MI) between 2 genes and performs permutations of gene expression data in order 
 #   to estimate MI coefficient distribution, and also to compute distance matrix between annotations
 
 
