@@ -7,7 +7,7 @@
 
 .packageName <- "FunNet"
 
-funnet.version <- "1.00-3"
+funnet.version <- "1.00-4"
 
 try(Sys.setlocale("LC_ALL", "en_US.utf8"), silent = TRUE)
 
@@ -1408,7 +1408,7 @@ annotate.for.net <- function(file.annot,fdr=FALSE,go=TRUE,direct=FALSE,taxoname,
 
 	if(restrict & !is.null(ref.list)){
 
-		file.annot <- file.annot[as.character(file.annot[,1]) %in% as.character(ref.list[,1]),]
+		file.annot <- file.annot[as.character(file.annot[,1]) %in% as.character(ref.list),]
 	
 	}
 	
@@ -2474,7 +2474,7 @@ dynamic.proximity <- function(annot.matrix=NULL, adj.matrix=NULL, RV=0.90, sigma
 
 			if(annotated.only){
 				marked.transcripts <- apply(mark.matrix,1,function(x) sum(x,na.rm=TRUE))
-				marked.transcripts <- names(marked.transcripts[marked.transcripts>0])
+				marked.transcripts <- names(marked.transcripts[marked.transcripts > 0])
 				dist.annotation <- as.matrix(dist(t(mark.matrix[marked.transcripts,]), method="euclid"))
 			}else{
 				dist.annotation <- as.matrix(dist(t(mark.matrix), method="euclid"))
@@ -2483,11 +2483,22 @@ dynamic.proximity <- function(annot.matrix=NULL, adj.matrix=NULL, RV=0.90, sigma
 								
 			# annot.proximity <- exp(-(dist.annotation))
 			if(is.na(sigma)){
-				sigma <- median(dist.annotation[lower.tri(dist.annotation,diag=FALSE)])
+				# the old way...
+				# sigma <- median(dist.annotation[lower.tri(dist.annotation,diag=FALSE)])
+				# annot.proximity <- exp(-(dist.annotation^2)/(2*(sigma^2)))
+				
+				# the new way with local sigma estimation:
+				sigma.vect <- apply(dist.annotation,1,function(x) median(x[x >= median(x)]))
+				
+				annot.proximity <- (dist.annotation^2)*(1/sigma.vect)
+				annot.proximity <- t(annot.proximity)*(1/sigma.vect)
+				annot.proximity <- exp(-annot.proximity)
+				diag(annot.proximity) <- 0
+				
+			}else{
+				annot.proximity <- exp(-(dist.annotation^2)/(sigma^2))
+				diag(annot.proximity) <- 0
 			}
-			
-			annot.proximity <- exp(-(dist.annotation^2)/(2*(sigma^2)))
-			diag(annot.proximity) <- 0
 
 		}
 		
@@ -4065,10 +4076,10 @@ profil.plot.two <- function(up.annot=NULL, down.annot=NULL, terms.name=NULL, tax
 									wdth <- 12}
 						if(compute.dim){
 							max.left_right <- max(c(nchar(terms.name[names(left),2]),nchar(terms.name[names(right),2]),nchar("Transcriptional domain coverage (%)")),na.rm=TRUE)
-							width <- 18.5*max.left_right
+							width <- 20*max.left_right
 							if(width < 600){width <- 600}
 						
-							height <- 300 + 45*wdth
+							height <- 300 + 43*wdth
 							#if(height < 450){height <- 450}
 						}
 						
@@ -4078,7 +4089,7 @@ profil.plot.two <- function(up.annot=NULL, down.annot=NULL, terms.name=NULL, tax
 						}else if(dev == "pdf"){
 							CairoPDF(file=paste(extra,taxoname," Level ",i,".pdf",sep=""), width=width/100, height=height/100, paper="special")
 						}else{
-							CairoPNG(file=paste(extra,taxoname," Level ",i,".png",sep=""), height=height, width=width, res=600)
+							CairoPNG(file=paste(extra,taxoname," Level ",i,".png",sep=""), height=0.85*height, width=0.85*width, res=600)
 						}
 	
 
@@ -4187,10 +4198,10 @@ profil.plot.two <- function(up.annot=NULL, down.annot=NULL, terms.name=NULL, tax
 								wdth <- 12}
 					if(compute.dim){
 						max.left_right <- max(c(nchar(terms.name[names(left),2]),nchar(terms.name[names(right),2]),nchar("Transcriptional domain coverage (%)")),na.rm=TRUE)
-						width <- 18.5*max.left_right
+						width <- 20*max.left_right
 						if(width < 600){width <- 600}
 					
-						height <- 300 + 45*wdth
+						height <- 300 + 43*wdth
 						#if(height < 450){height <- 450}
 					}
 						
@@ -4201,7 +4212,7 @@ profil.plot.two <- function(up.annot=NULL, down.annot=NULL, terms.name=NULL, tax
 					}else if(dev == "pdf"){
 						CairoPDF(file=paste(extra,taxoname,".pdf",sep=""), width=width/100, height=height/100,	paper="special")
 					}else{
-						CairoPNG(file=paste(extra,taxoname,".png",sep=""), height=height, width=width, res=600)
+						CairoPNG(file=paste(extra,taxoname,".png",sep=""), height=0.85*height, width=0.85*width, res=600)
 					}
 
 					par(mfrow=c(1,2), bg="white", las=1, adj=1, mar =c(6,1,5,0.5), ask=F)
@@ -4344,10 +4355,10 @@ profil.plot.one <- function(genes.annot=NULL, terms.name=NULL, taxoname=NULL, he
 						
 						if(compute.dim){
 							max.right <- max(c(nchar(terms.name[names(right),2]),nchar("Transcriptional domain coverage (%)")))
-							width <- 9.5*max.right
+							width <- 10.5*max.right
 							if(width < 300){width <- 300}
 						
-							height <- 300 + 45*wdth
+							height <- 300 + 43*wdth
 							#if(height < 450){height <- 450}
 						}
 						
@@ -4357,7 +4368,7 @@ profil.plot.one <- function(genes.annot=NULL, terms.name=NULL, taxoname=NULL, he
 						}else if(dev == "pdf"){
 							CairoPDF(file=paste(extra,taxoname," Level ",i,".pdf",sep=""), width=width/100, height=height/100, paper="special")
 						}else{
-							CairoPNG(file=paste(extra,taxoname," Level ",i,".png",sep=""), height=height, width=width, res=600)
+							CairoPNG(file=paste(extra,taxoname," Level ",i,".png",sep=""), height=0.85*height, width=0.85*width, res=600)
 						}
 	
 
@@ -4417,10 +4428,10 @@ profil.plot.one <- function(genes.annot=NULL, terms.name=NULL, taxoname=NULL, he
 								wdth <- 12}
 					if(compute.dim){
 						max.right <- max(c(nchar(terms.name[names(right),2]),nchar("Transcriptional domain coverage (%)")))
-						width <- 9.5*max.right
+						width <- 10.5*max.right
 						if(width < 300){height <- 300}
 					
-						height <- 300 + 45*wdth
+						height <- 300 + 43*wdth
 						#if(height < 450){height <- 450}
 					}
 								
@@ -4430,7 +4441,7 @@ profil.plot.one <- function(genes.annot=NULL, terms.name=NULL, taxoname=NULL, he
 					}else if(dev == "pdf"){
 						CairoPDF(file=paste(extra,taxoname,".pdf",sep=""), width=width/100, height=height/100,	paper="special")
 					}else{
-						CairoPNG(file=paste(extra,taxoname,".png",sep=""), height=height, width=width, res=600)
+						CairoPNG(file=paste(extra,taxoname,".png",sep=""), height=0.85*height, width=0.85*width, res=600)
 					}
 
 					par(mfrow=c(1,1), bg="white", las=1, adj=0, mar =c(6,1,5,1), ask=F)
