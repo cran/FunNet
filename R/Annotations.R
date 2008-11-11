@@ -1,17 +1,19 @@
 .packageName <- "FunNet"
 
-MiseEnFormeKegg <- function (ligne, Fichier){ 
+
+
+.MiseEnFormeKegg <- function (ligne, Fichier){ 
 	vec1 <- ligne
 	LL <-as.character(vec1[1]) 
 	if (!identical(all.equal( as.numeric(LL), as.numeric(NA)),TRUE) ){   
 		Kmap <- as.character(vec1[-1])
-		Kmap <- Kmap [ Kmap != ""]  
-		NbKmap <- length (Kmap)
+		Kmap <- Kmap[Kmap != ""]  
+		NbKmap <- length(Kmap)
 
-		LocusLink  <- gl ( 1, NbKmap, label = LL) 
+		LocusLink  <- gl(1, NbKmap, label = LL) 
 
-		LLcorrespondance <- cbind.data.frame( LocusLink, Kmap )  
-		write.table(LLcorrespondance, Fichier ,col.names =FALSE,row.names=FALSE,append = TRUE, sep= "\t",quote = FALSE)  
+		LLcorrespondance <- cbind.data.frame(LocusLink, Kmap )  
+		write.table(LLcorrespondance, Fichier,col.names =FALSE,row.names=FALSE,append = TRUE, sep= "\t",quote = FALSE)  
 
 
 	}
@@ -19,7 +21,7 @@ MiseEnFormeKegg <- function (ligne, Fichier){
 }
 
 
-MiseEnFormeKeggSC <- function(ligne, Fichier) { 
+.MiseEnFormeKeggSC <- function(ligne, Fichier) { 
 	vec1 <- ligne
 	LL <-as.character(vec1[1]) 
 
@@ -36,7 +38,7 @@ MiseEnFormeKeggSC <- function(ligne, Fichier) {
 
 
 
-LoadKEGG <- function(espece = espece){
+.LoadKEGG <- function(espece = espece){
 
 	if(espece == "hsa"){ 
 		DIResp <- "HS"
@@ -84,9 +86,9 @@ LoadKEGG <- function(espece = espece){
 
 
 	if(espece == "hsa" || espece == "mmu" || espece == "rno"){		
-		suppressWarnings (apply (DTtemp, 1, FUN = "MiseEnFormeKegg" ,FichierFinalNonQuote))
+		suppressWarnings (apply (DTtemp, 1, FUN = ".MiseEnFormeKegg" ,FichierFinalNonQuote))
 	}else if(espece == "sce"){
-		suppressWarnings (apply (DTtemp, 1, FUN = "MiseEnFormeKeggSC" ,FichierFinalNonQuote))
+		suppressWarnings (apply (DTtemp, 1, FUN = ".MiseEnFormeKeggSC" ,FichierFinalNonQuote))
 	}
 
 	if(espece == "hsa"){ 
@@ -100,35 +102,35 @@ LoadKEGG <- function(espece = espece){
 		MM.KEGG.file.annot <<- read.table ( file = FichierFinalNonQuote ,na.strings = "",fill=TRUE,colClasses="character",sep= "\t",header = FALSE,quote = "",comment.char = "")
 		write.table (MM.KEGG.file.annot, FichierFinal,col.names =FALSE,row.names=FALSE,append = TRUE, sep= "\t")
 		colnames(MM.KEGG.file.annot) <<- c("GeneID","KEGG")
-	
+
 	}else if(espece == "rno"){
-	
+
 		RN.KEGG.file.annot <<- read.table ( file = FichierFinalNonQuote ,na.strings = "",fill=TRUE,colClasses="character",sep= "\t",header = FALSE,quote = "",comment.char = "")
 		write.table (RN.KEGG.file.annot, FichierFinal,col.names =FALSE,row.names=FALSE,append = TRUE, sep= "\t")
 		colnames(RN.KEGG.file.annot) <<- c("GeneID","KEGG")
-	
+
 	}else if(espece == "sce"){
-			
+
 		SC.KEGG.file.annot <<- read.table ( file = FichierFinalNonQuote, na.strings = "",fill=TRUE,colClasses="character",sep= "\t",header = FALSE,quote = "",comment.char = "")
-			
-		DTLL <- GeneInfo()
+
+		DTLL <- .GeneInfo()
 		DTLL <- as.matrix(DTLL[DTLL[,1] == "4932",])
 		rownames(DTLL) <- as.character(DTLL[,4])
 		SC.KEGG.file.annot <<- as.matrix(SC.KEGG.file.annot)
 		rownames(SC.KEGG.file.annot) <<- as.character(SC.KEGG.file.annot[,1])
 		x <- DTLL[DTLL[,4] %in% as.character(SC.KEGG.file.annot[,1]),2]
 		SC.KEGG.file.annot <<- SC.KEGG.file.annot[SC.KEGG.file.annot[,1] %in% names(x),]
-			
+
 		y <- NULL
-			
+
 		for(i in 1:nrow(SC.KEGG.file.annot)){				
-				
+
 			y <- rbind(y,c(x[SC.KEGG.file.annot[i,1]],SC.KEGG.file.annot[i,2]))
 		}
 		colnames(y) <- as.character(matrix("",1,ncol(y)))
 		SC.KEGG.file.annot <<- y
 		colnames(SC.KEGG.file.annot) <<- c("GeneID","KEGG")
-			
+
 		write.table (SC.KEGG.file.annot, FichierFinal, col.names =FALSE, row.names=FALSE, append = TRUE, sep= "\t") 
 
 	}
@@ -143,7 +145,7 @@ LoadKEGG <- function(espece = espece){
 
 
 
-Kegg <- function () { 
+.Kegg <- function () { 
 
 
 	dir.create(paste(getwd(),"/Annotations/KEGG",sep=""))
@@ -163,23 +165,23 @@ Kegg <- function () {
 
 
 	dir.create(paste(getwd(),"/Annotations/KEGG/HS",sep=""))
-	LoadKEGG("hsa")
+	.LoadKEGG("hsa")
 
 
 	dir.create(paste(getwd(),"/Annotations/KEGG/MM",sep=""))
-	LoadKEGG("mmu")
-	
+	.LoadKEGG("mmu")
+
 	dir.create(paste(getwd(),"/Annotations/KEGG/RN",sep=""))
-	LoadKEGG("rno")
+	.LoadKEGG("rno")
 
 
 	dir.create(paste(getwd(),"/Annotations/KEGG/SC",sep=""))
-	LoadKEGG("sce")
+	.LoadKEGG("sce")
 }
 
 
 
-MakeGoTerms <- function (DTGoTermsAndIds) {
+.MakeGoTerms <- function (DTGoTermsAndIds) {
 
 
 	DTGoTermsAndIds <- DTGoTermsAndIds[substr(DTGoTermsAndIds[,1],1,1) != "!" ,]
@@ -190,7 +192,7 @@ MakeGoTerms <- function (DTGoTermsAndIds) {
 
 	FichierFinal <- file(paste(getwd(),"/Annotations/GO/go_terms.txt",sep=""), "w") 
 	write.table (GO.terms.name, FichierFinal, col.names =FALSE, row.names=FALSE, sep = "\t")
-	
+
 	colnames(GO.terms.name) <<- c("GO","Name")
 
 	close(FichierFinal)
@@ -199,7 +201,7 @@ MakeGoTerms <- function (DTGoTermsAndIds) {
 
 
 
-MakeGoHierarchy <- function (DATE="") {
+.MakeGoHierarchy <- function (DATE="") {
 
 
 	if(DATE == ""){
@@ -207,7 +209,7 @@ MakeGoHierarchy <- function (DATE="") {
 		DATE <- substr(as.character(DATE),1,7)  
 		DATE <- gsub("-","",DATE)   
 	}
-	
+
 	NomFichier  <- paste("go_", DATE , "-termdb-tables.tar.gz" ,sep = "")
 
 	download.file(paste ("http://godatabase-archive.stanford.edu/latest/", NomFichier,sep = ""),paste (getwd(),"/go_DATE-termdb-tables.tar.gz",sep=""),mode="wb")
@@ -243,7 +245,7 @@ MakeGoHierarchy <- function (DATE="") {
 
 
 
-TroisiemeFiltrage <- function (DTGoTermsAndIds,DTLoc2GoFiltre1, FichOntology ,initialeOntology) {
+.TroisiemeFiltrage <- function (DTGoTermsAndIds,DTLoc2GoFiltre1, FichOntology ,initialeOntology) {
 
 	OntDTGoTermsAndIds <- DTGoTermsAndIds[ DTGoTermsAndIds[,3] == initialeOntology,]
 	DTOntology <- DTLoc2GoFiltre1 [ DTLoc2GoFiltre1[,2] %in% OntDTGoTermsAndIds[,1],]
@@ -262,7 +264,7 @@ TroisiemeFiltrage <- function (DTGoTermsAndIds,DTLoc2GoFiltre1, FichOntology ,in
 
 
 
-GeneInfo <- function(){
+.GeneInfo <- function(){
 
 	LLTemp <- file(paste(getwd(),"/Annotations/gene_info.txt",sep=""), "r")
 
@@ -279,7 +281,7 @@ GeneInfo <- function(){
 
 
 
-MakeCorrespondanceLLGO <- function (DTLoc2Go, DTGoTermsAndIds,DTGOHierarchy, espece = espece) {  
+.MakeCorrespondanceLLGO <- function (DTLoc2Go, DTGoTermsAndIds,DTGOHierarchy, espece = espece) {  
 
 	if(espece == "hs"){
 		DIResp <- "HS"
@@ -308,32 +310,32 @@ MakeCorrespondanceLLGO <- function (DTLoc2Go, DTGoTermsAndIds,DTGOHierarchy, esp
 
 
 	if(espece == "hs"){
-		HS.GO.DIR.BP.file.annot <<- TroisiemeFiltrage (DTGoTermsAndIds,DTLoc2GoFiltre1, FichBioProcess ,"P")
+		HS.GO.DIR.BP.file.annot <<- .TroisiemeFiltrage (DTGoTermsAndIds,DTLoc2GoFiltre1, FichBioProcess ,"P")
 		colnames(HS.GO.DIR.BP.file.annot) <<- c("GeneID","GO")
-		HS.GO.DIR.CC.file.annot <<- TroisiemeFiltrage (DTGoTermsAndIds,DTLoc2GoFiltre1, FichCellComp ,"C")
+		HS.GO.DIR.CC.file.annot <<- .TroisiemeFiltrage (DTGoTermsAndIds,DTLoc2GoFiltre1, FichCellComp ,"C")
 		colnames(HS.GO.DIR.CC.file.annot) <<- c("GeneID","GO")
-		HS.GO.DIR.MF.file.annot <<- TroisiemeFiltrage (DTGoTermsAndIds,DTLoc2GoFiltre1, FichMolFunc ,"F")
+		HS.GO.DIR.MF.file.annot <<- .TroisiemeFiltrage (DTGoTermsAndIds,DTLoc2GoFiltre1, FichMolFunc ,"F")
 		colnames(HS.GO.DIR.MF.file.annot) <<- c("GeneID","GO")
 	}else if(espece == "mm"){
-		MM.GO.DIR.BP.file.annot <<- TroisiemeFiltrage (DTGoTermsAndIds,DTLoc2GoFiltre1, FichBioProcess ,"P")
+		MM.GO.DIR.BP.file.annot <<- .TroisiemeFiltrage (DTGoTermsAndIds,DTLoc2GoFiltre1, FichBioProcess ,"P")
 		colnames(MM.GO.DIR.BP.file.annot) <<- c("GeneID","GO")
-		MM.GO.DIR.CC.file.annot <<- TroisiemeFiltrage (DTGoTermsAndIds,DTLoc2GoFiltre1, FichCellComp ,"C")
+		MM.GO.DIR.CC.file.annot <<- .TroisiemeFiltrage (DTGoTermsAndIds,DTLoc2GoFiltre1, FichCellComp ,"C")
 		colnames(MM.GO.DIR.CC.file.annot) <<- c("GeneID","GO")
-		MM.GO.DIR.MF.file.annot <<- TroisiemeFiltrage (DTGoTermsAndIds,DTLoc2GoFiltre1, FichMolFunc ,"F")
+		MM.GO.DIR.MF.file.annot <<- .TroisiemeFiltrage (DTGoTermsAndIds,DTLoc2GoFiltre1, FichMolFunc ,"F")
 		colnames(MM.GO.DIR.MF.file.annot) <<- c("GeneID","GO")
 	}else if(espece == "rn"){
-		RN.GO.DIR.BP.file.annot <<- TroisiemeFiltrage (DTGoTermsAndIds,DTLoc2GoFiltre1, FichBioProcess ,"P")
+		RN.GO.DIR.BP.file.annot <<- .TroisiemeFiltrage (DTGoTermsAndIds,DTLoc2GoFiltre1, FichBioProcess ,"P")
 		colnames(RN.GO.DIR.BP.file.annot) <<- c("GeneID","GO")
-		RN.GO.DIR.CC.file.annot <<- TroisiemeFiltrage (DTGoTermsAndIds,DTLoc2GoFiltre1, FichCellComp ,"C")
+		RN.GO.DIR.CC.file.annot <<- .TroisiemeFiltrage (DTGoTermsAndIds,DTLoc2GoFiltre1, FichCellComp ,"C")
 		colnames(RN.GO.DIR.CC.file.annot) <<- c("GeneID","GO")
-		RN.GO.DIR.MF.file.annot <<- TroisiemeFiltrage (DTGoTermsAndIds,DTLoc2GoFiltre1, FichMolFunc ,"F")
+		RN.GO.DIR.MF.file.annot <<- .TroisiemeFiltrage (DTGoTermsAndIds,DTLoc2GoFiltre1, FichMolFunc ,"F")
 		colnames(RN.GO.DIR.MF.file.annot) <<- c("GeneID","GO")
 	}else if(espece == "sc"){
-		SC.GO.DIR.BP.file.annot <<- TroisiemeFiltrage (DTGoTermsAndIds,DTLoc2GoFiltre1, FichBioProcess ,"P")
+		SC.GO.DIR.BP.file.annot <<- .TroisiemeFiltrage (DTGoTermsAndIds,DTLoc2GoFiltre1, FichBioProcess ,"P")
 		colnames(SC.GO.DIR.BP.file.annot) <<- c("GeneID","GO")
-		SC.GO.DIR.CC.file.annot <<- TroisiemeFiltrage (DTGoTermsAndIds,DTLoc2GoFiltre1, FichCellComp ,"C")
+		SC.GO.DIR.CC.file.annot <<- .TroisiemeFiltrage (DTGoTermsAndIds,DTLoc2GoFiltre1, FichCellComp ,"C")
 		colnames(SC.GO.DIR.CC.file.annot) <<- c("GeneID","GO")
-		SC.GO.DIR.MF.file.annot <<- TroisiemeFiltrage (DTGoTermsAndIds,DTLoc2GoFiltre1, FichMolFunc ,"F")
+		SC.GO.DIR.MF.file.annot <<- .TroisiemeFiltrage (DTGoTermsAndIds,DTLoc2GoFiltre1, FichMolFunc ,"F")
 		colnames(SC.GO.DIR.MF.file.annot) <<- c("GeneID","GO")
 
 	}
@@ -348,7 +350,7 @@ MakeCorrespondanceLLGO <- function (DTLoc2Go, DTGoTermsAndIds,DTGOHierarchy, esp
 
 
 
-MakeLocusNames <- function( espece, DTLL) {  
+.MakeLocusNames <- function( espece, DTLL) {  
 
 	if(espece == "hs"){
 		DTLLesp <- DTLL[DTLL[,1] == "9606",2:ncol(DTLL)]
@@ -395,13 +397,13 @@ MakeLocusNames <- function( espece, DTLL) {
 }
 
 
-GeneToUnigene <- function(espece, DTLL=NULL){
-	
+.GeneToUnigene <- function(espece, DTLL=NULL){
+
 	UGTemp <- file(paste(getwd(),"/Annotations/gene2unigene.txt",sep=""), "r")
 	UGLLbrut <- read.table(file = UGTemp,na.strings = "-",fill=TRUE,colClasses="character",sep= "\t",header = FALSE, quote = "",comment.char = "#")
 	close(UGTemp)
-	
-	
+
+
 	if(espece == "hs" & !is.null(DTLL)){
 		DTLLesp <- DTLL[DTLL[,1] == "9606",2:ncol(DTLL)]
 		DIResp <- "HS"
@@ -420,9 +422,9 @@ GeneToUnigene <- function(espece, DTLL=NULL){
 
 	DTLLesp <- as.character(DTLLesp[, 1])
 	DTLLesp <- unique(DTLLesp)
-	
+
 	UGLLesp <- NULL
-	
+
 	if(espece %in% c("hs","mm","rn")){
 		UGLLesp <- UGLLbrut[UGLLbrut[,1] %in% DTLLesp,]
 		UGLLesp <- unique.data.frame(UGLLesp) 
@@ -448,9 +450,9 @@ GeneToUnigene <- function(espece, DTLL=NULL){
 		SC.orf <<- cbind.data.frame(SC.orf, row.names = as.character(SC.orf[,1]))
 		colnames(SC.orf) <<- c("GeneID","ORF")
 	}
-	
+
 	close(FichierFinal)
-	
+
 }
 
 
@@ -458,7 +460,7 @@ GeneToUnigene <- function(espece, DTLL=NULL){
 
 
 
-goAndLL <- function(DATE=""){ 
+.goAndLL <- function(DATE=""){ 
 
 
 	dir.create(paste(getwd(),"/Annotations/GO",sep=""))
@@ -492,27 +494,27 @@ goAndLL <- function(DATE=""){
 
 
 
-	MakeGoTerms(DTGoTermsAndIds) 
+	.MakeGoTerms(DTGoTermsAndIds) 
 
-	DTGoHierarchy <- MakeGoHierarchy(DATE=DATE)
+	DTGoHierarchy <- .MakeGoHierarchy(DATE=DATE)
 
 
-	DTLL <- GeneInfo()
+	DTLL <- .GeneInfo()
 
 
 	dir.create(paste(getwd(),"/Annotations/GO/HS",sep=""))
-	MakeCorrespondanceLLGO(DTLoc2Go,DTGoTermsAndIds, DTGoHierarchy , "hs")
+	.MakeCorrespondanceLLGO(DTLoc2Go,DTGoTermsAndIds, DTGoHierarchy , "hs")
 
 
 	dir.create(paste(getwd(),"/Annotations/GO/MM",sep=""))
-	MakeCorrespondanceLLGO (DTLoc2Go, DTGoTermsAndIds, DTGoHierarchy , "mm")
-	
+	.MakeCorrespondanceLLGO (DTLoc2Go, DTGoTermsAndIds, DTGoHierarchy , "mm")
+
 	dir.create(paste(getwd(),"/Annotations/GO/RN",sep=""))
-	MakeCorrespondanceLLGO (DTLoc2Go, DTGoTermsAndIds, DTGoHierarchy , "rn")
+	.MakeCorrespondanceLLGO (DTLoc2Go, DTGoTermsAndIds, DTGoHierarchy , "rn")
 
 
 	dir.create(paste(getwd(),"/Annotations/GO/SC",sep=""))
-	MakeCorrespondanceLLGO (DTLoc2Go, DTGoTermsAndIds, DTGoHierarchy , "sc")
+	.MakeCorrespondanceLLGO (DTLoc2Go, DTGoTermsAndIds, DTGoHierarchy , "sc")
 
 
 
@@ -521,26 +523,29 @@ goAndLL <- function(DATE=""){
 
 
 	dir.create(paste(getwd(),"/Annotations/LL/HS",sep=""))
-	MakeLocusNames("hs", DTLL)
-	GeneToUnigene("hs", DTLL)
+	.MakeLocusNames("hs", DTLL)
+	.GeneToUnigene("hs", DTLL)
 
 	dir.create(paste(getwd(),"/Annotations/LL/MM",sep=""))
-	MakeLocusNames("mm", DTLL)
-	GeneToUnigene("mm", DTLL)
-	
+	.MakeLocusNames("mm", DTLL)
+	.GeneToUnigene("mm", DTLL)
+
 	dir.create(paste(getwd(),"/Annotations/LL/RN",sep=""))
-	MakeLocusNames("rn", DTLL)
-	GeneToUnigene("rn", DTLL)
+	.MakeLocusNames("rn", DTLL)
+	.GeneToUnigene("rn", DTLL)
 
 	dir.create(paste(getwd(),"/Annotations/LL/SC",sep=""))
-	MakeLocusNames("sc", DTLL)
-	GeneToUnigene("sc", DTLL)
-	
+	.MakeLocusNames("sc", DTLL)
+	.GeneToUnigene("sc", DTLL)
+
 }
 
 
-annotations <- function(date.annot=""){   
 
+
+########################################################################
+
+annotations <- function(date.annot=""){   
 
 	dir.create(paste(getwd(),"/Annotations", sep= ""))
 	
@@ -557,8 +562,8 @@ annotations <- function(date.annot=""){
 	
 	download.file(paste("ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/gene2unigene",sep="") ,paste( getwd(),"/Annotations/gene2unigene.txt",sep=""), mode = "wb" )
 		
-	Kegg()
-	goAndLL(DATE=date.annot)
+	.Kegg()
+	.goAndLL(DATE=date.annot)
 	
 	unlink(paste(getwd(),"/Annotations/gene_info.txt",sep=""))
 	unlink(paste(getwd(),"/Annotations/gene2unigene.txt",sep=""))

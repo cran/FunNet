@@ -7,7 +7,7 @@
 
 .packageName <- "FunNet"
 
-funnet.version <- "1.00-4"
+.funnet.version <- "1.00-5"
 
 try(Sys.setlocale("LC_ALL", "en_US.utf8"), silent = TRUE)
 
@@ -16,7 +16,8 @@ try(Sys.setlocale("LC_ALL", "en_US.utf8"), silent = TRUE)
   verbose <- .Options$Hverbose
   if(!length(verbose) || verbose)
 
-cat(paste("\nThis is FunNet package ",funnet.version," built and maintained by Corneliu Henegar.\n\n",
+cat(paste("\nThis is FunNet package ",.funnet.version," built and maintained by Corneliu Henegar.\n",
+	"Using Gene Ontology and KEGG annotations updated on ",annot.date,".\n\n",
 	"FunNet(wd='', org=c('HS','MM','RN','SC'), two.lists=TRUE, up.frame=NULL, down.frame=NULL,\n",
 			"\t genes.frame=NULL, restrict=FALSE, ref.list=NULL, logged=TRUE,\n",
 			"\t discriminant=FALSE, go.bp=TRUE, go.cc=TRUE, go.mf=TRUE, kegg=TRUE,\n",
@@ -62,7 +63,7 @@ FunNet <- function(wd="", org="HS", two.lists=TRUE, up.frame=NULL, down.frame=NU
 
 	# keep the evidence of the parameters
 	
-	parameter.list <- list(analysis.date=date(), package.version=funnet.version, org=org, annot.date=annot.date, annot.method=annot.method, 
+	parameter.list <- list(analysis.date=date(), package.version=.funnet.version, org=org, annot.date=annot.date, annot.method=annot.method, 
 			annot.clust.method=annot.clust.method, annot.prox.measure=annot.prox.measure, direct=direct, enriched=enriched, fdr=fdr, 
 			two.lists=two.lists, restrict=restrict, go.bp=go.bp, go.cc=go.cc, go.mf=go.mf, kegg=kegg, discriminant=discriminant, 
 			logged=logged, annot.details=annot.details, estimate.th=estimate.th, hard.th=hard.th, soft.th=soft.th, 
@@ -73,7 +74,7 @@ FunNet <- function(wd="", org="HS", two.lists=TRUE, up.frame=NULL, down.frame=NU
 	
 	# check parameters for errors
 	
-	check.parameters(parameter.list, coexp.matrix, up.frame, down.frame, ref.list, genes.frame)
+	.check.parameters(parameter.list, coexp.matrix, up.frame, down.frame, ref.list, genes.frame)
 	
 	if(discriminant){
 		two.lists <- TRUE
@@ -99,7 +100,9 @@ FunNet <- function(wd="", org="HS", two.lists=TRUE, up.frame=NULL, down.frame=NU
 	results.dir <- paste("Results_",format(Sys.time(), "%Y_%b_%d_%H-%M-%S"),sep="")
 	dir.create(paste(getwd(),"/",results.dir,sep=""))
 	dir.create (paste(getwd(),"/",results.dir,"/html",sep=""))
-	dir.create (paste(getwd(),"/",results.dir,"/images",sep=""))	
+	dir.create (paste(getwd(),"/",results.dir,"/images",sep=""))
+	
+	try(write.table(as.matrix(print(parameter.list)),col.names=F,file=paste(getwd(),"/",results.dir,"/","parameters_list.txt",sep=""),sep="\t"))
 	
 # Load data files	
 
@@ -128,7 +131,7 @@ FunNet <- function(wd="", org="HS", two.lists=TRUE, up.frame=NULL, down.frame=NU
 		#if(is.null(up.frame)){try(up.frame <- read.table(paste(wd,"/","up.txt",sep=""),sep="\t"))}	# genes UP
 		#if(is.null(down.frame)){try(down.frame <- read.table(paste(wd,"/","down.txt",sep=""),sep="\t"))}	# genes DOWN
 
-		up.down <- filter.genes(up.frame=up.frame,down.frame=down.frame,two.lists=TRUE,locus.name=locus.name,logged=logged)
+		up.down <- .filter.genes(up.frame=up.frame,down.frame=down.frame,two.lists=TRUE,locus.name=locus.name,logged=logged)
 		up.frame <- up.down$up.frame
 		down.frame <- up.down$down.frame
 		rm(up.down)
@@ -136,7 +139,7 @@ FunNet <- function(wd="", org="HS", two.lists=TRUE, up.frame=NULL, down.frame=NU
 		if(discriminant){	# specifing a reference list of genes for the calculation of annotations enrichment
 			ref.list <- c(as.character(up.frame[,1]),as.character(down.frame[,1]))
 		}else if(restrict & !discriminant){
-			ref.list <- filter.genes(restrict=TRUE,ref.list=ref.list,locus.name=locus.name)
+			ref.list <- .filter.genes(restrict=TRUE,ref.list=ref.list,locus.name=locus.name)
 		}else if(!restrict & !discriminant){
 			ref.list <- NULL
 		}
@@ -145,10 +148,10 @@ FunNet <- function(wd="", org="HS", two.lists=TRUE, up.frame=NULL, down.frame=NU
 	}else{
 		#if(is.null(genes.frame)){genes.frame <- read.table(paste(wd,"/","genes.txt",sep=""),sep="\t")}	# a unique data frame of genes
 
-		genes.frame <- filter.genes(genes.frame=genes.frame,two.lists=FALSE,locus.name=locus.name)
+		genes.frame <- .filter.genes(genes.frame=genes.frame,two.lists=FALSE,locus.name=locus.name)
 		
 		if(restrict){
-			ref.list <- filter.genes(restrict=TRUE,ref.list=ref.list,locus.name=locus.name)
+			ref.list <- .filter.genes(restrict=TRUE,ref.list=ref.list,locus.name=locus.name)
 		}else{
 			ref.list <- NULL
 		}
@@ -173,7 +176,7 @@ FunNet <- function(wd="", org="HS", two.lists=TRUE, up.frame=NULL, down.frame=NU
 		rownames(datas) <- datas[,1]
 		datas <- datas[,2:ncol(datas)]
 		cat("\n\tHard thresholding...\n")
-		try(hard.th <- PickHardThreshold(datExpr1=t(datas),coexp.method=coexp.method))
+		try(hard.th <- .PickHardThreshold(datExpr1=t(datas),coexp.method=coexp.method))
 				
 		try(write.table(hard.th$tablou,file = paste(getwd(),"/",results.dir,"/",coexp.method,"_hard_threshold.txt",sep=""),append=FALSE, col.names=TRUE,,row.names=F,sep="\t"))
 		try(write(paste("\n\nHard threshold estimate: ",hard.th$estimate,"\n",sep=""),file = paste(getwd(),"/",results.dir,"/",coexp.method,"_hard_threshold.txt",sep=""),append=TRUE))
@@ -183,7 +186,7 @@ FunNet <- function(wd="", org="HS", two.lists=TRUE, up.frame=NULL, down.frame=NU
 
 
 		cat("\n\tSoft thresholding...\n")
-		try(soft.th <- PickSoftThreshold(datExpr1=t(datas),coexp.method=coexp.method))
+		try(soft.th <- .PickSoftThreshold(datExpr1=t(datas),coexp.method=coexp.method))
 				
 		try(write.table(soft.th$tablou,file = paste(getwd(),"/",results.dir,"/",coexp.method,"_soft_threshold.txt",sep=""),append=FALSE, col.names=TRUE,,row.names=F,sep="\t"))
 		try(write(paste("\n\nSoft threshold estimate: ",soft.th$estimate,"\n",sep=""),file = paste(getwd(),"/",results.dir,"/",coexp.method,"_soft_threshold.txt",sep=""),append=TRUE))
@@ -249,7 +252,7 @@ FunNet <- function(wd="", org="HS", two.lists=TRUE, up.frame=NULL, down.frame=NU
 			}
 
 			if(topological){
-				coexp.matrix <- 1 - TOMdist(adjmat1=coexp.matrix)
+				coexp.matrix <- 1 - .TOMdist(adjmat1=coexp.matrix)
 			}else if(keep.sign){
 				coexp.matrix <- coexp.matrix * sign.matrix
 			}
@@ -276,14 +279,14 @@ FunNet <- function(wd="", org="HS", two.lists=TRUE, up.frame=NULL, down.frame=NU
 	
 	
 		if(two.lists){
-			main.loop(file.annot=file.annot,taxoname=taxoname,annot.method=annot.method,terms.name=terms.name,direct=direct,fdr=fdr,
+			.main.loop(file.annot=file.annot,taxoname=taxoname,annot.method=annot.method,terms.name=terms.name,direct=direct,fdr=fdr,
 				go=FALSE,results.dir=results.dir,alpha=alpha,locus.name=locus.name,annot.clust.method=annot.clust.method,
 				up.frame=up.frame,down.frame=down.frame,restrict=restrict,ref.list=ref.list,annot.details=annot.details,level=NA,
 				build.annot.net=build.annot.net,test.recovery=test.recovery,test.robust=test.robust,replace.annot=replace.annot,
 				locus.symbol=locus.symbol,annot.prox.measure=annot.prox.measure,coexp.matrix=coexp.matrix,parameter.list=parameter.list,
 				org=org,gene.net.details=gene.net.details,RV=RV,sigma=sigma)
 		}else{
-			main.loop(file.annot=file.annot,taxoname=taxoname,annot.method=annot.method,terms.name=terms.name,direct=direct,fdr=fdr,
+			.main.loop(file.annot=file.annot,taxoname=taxoname,annot.method=annot.method,terms.name=terms.name,direct=direct,fdr=fdr,
 				go=FALSE,results.dir=results.dir,annot.clust.method=annot.clust.method,alpha=alpha,locus.name=locus.name,
 				genes.frame=genes.frame,restrict=restrict,ref.list=ref.list,annot.details=annot.details,level=NA,build.annot.net=build.annot.net,
 				test.recovery=test.recovery,test.robust=test.robust,replace.annot=replace.annot,locus.symbol=locus.symbol,
@@ -309,14 +312,14 @@ FunNet <- function(wd="", org="HS", two.lists=TRUE, up.frame=NULL, down.frame=NU
 		taxoname <- go.name[1]	# name of the GO branch considered for gene annotations
 
 		if(two.lists == TRUE){
-			main.loop(file.annot=file.annot,taxoname=taxoname,annot.method=annot.method,terms.name=terms.name,direct=direct,fdr=fdr,
+			.main.loop(file.annot=file.annot,taxoname=taxoname,annot.method=annot.method,terms.name=terms.name,direct=direct,fdr=fdr,
 				go=TRUE,results.dir=results.dir,alpha=alpha,locus.name=locus.name,annot.clust.method=annot.clust.method,
 				up.frame=up.frame,down.frame=down.frame,restrict=restrict,ref.list=ref.list,annot.details=annot.details,level=level,
 				build.annot.net=build.annot.net,test.recovery=test.recovery,test.robust=test.robust,replace.annot=replace.annot,
 				locus.symbol=locus.symbol,annot.prox.measure=annot.prox.measure,coexp.matrix=coexp.matrix,parameter.list=parameter.list,
 				org=org,gene.net.details=gene.net.details,RV=RV,sigma=sigma)
 		}else{
-			main.loop(file.annot=file.annot,taxoname=taxoname,annot.method=annot.method,terms.name=terms.name,direct=direct,fdr=fdr,
+			.main.loop(file.annot=file.annot,taxoname=taxoname,annot.method=annot.method,terms.name=terms.name,direct=direct,fdr=fdr,
 				go=TRUE,results.dir=results.dir,annot.clust.method=annot.clust.method,alpha=alpha,locus.name=locus.name,
 				genes.frame=genes.frame,restrict=restrict,ref.list=ref.list,annot.details=annot.details,level=level,build.annot.net=build.annot.net,
 				test.recovery=test.recovery,test.robust=test.robust,replace.annot=replace.annot,locus.symbol=locus.symbol,
@@ -335,14 +338,14 @@ FunNet <- function(wd="", org="HS", two.lists=TRUE, up.frame=NULL, down.frame=NU
 		taxoname <- go.name[2]	# name of the GO branch considered for gene annotations
 
 		if(two.lists == TRUE){
-			main.loop(file.annot=file.annot,taxoname=taxoname,annot.method=annot.method,terms.name=terms.name,direct=direct,fdr=fdr,
+			.main.loop(file.annot=file.annot,taxoname=taxoname,annot.method=annot.method,terms.name=terms.name,direct=direct,fdr=fdr,
 				go=TRUE,results.dir=results.dir,alpha=alpha,locus.name=locus.name,annot.clust.method=annot.clust.method,
 				up.frame=up.frame,down.frame=down.frame,restrict=restrict,ref.list=ref.list,annot.details=annot.details,level=level,
 				build.annot.net=build.annot.net,test.recovery=test.recovery,test.robust=test.robust,replace.annot=replace.annot,
 				locus.symbol=locus.symbol,annot.prox.measure=annot.prox.measure,coexp.matrix=coexp.matrix,parameter.list=parameter.list,
 				org=org,gene.net.details=gene.net.details,RV=RV,sigma=sigma)
 		}else{
-			main.loop(file.annot=file.annot,taxoname=taxoname,annot.method=annot.method,terms.name=terms.name,direct=direct,fdr=fdr,
+			.main.loop(file.annot=file.annot,taxoname=taxoname,annot.method=annot.method,terms.name=terms.name,direct=direct,fdr=fdr,
 				go=TRUE,results.dir=results.dir,annot.clust.method=annot.clust.method,alpha=alpha,locus.name=locus.name,
 				genes.frame=genes.frame,restrict=restrict,ref.list=ref.list,annot.details=annot.details,level=level,build.annot.net=build.annot.net,
 				test.recovery=test.recovery,test.robust=test.robust,replace.annot=replace.annot,locus.symbol=locus.symbol,
@@ -361,14 +364,14 @@ FunNet <- function(wd="", org="HS", two.lists=TRUE, up.frame=NULL, down.frame=NU
 		taxoname <- go.name[3]	# name of the GO branch considered for gene annotations
 
 		if(two.lists == TRUE){
-			main.loop(file.annot=file.annot,taxoname=taxoname,annot.method=annot.method,terms.name=terms.name,direct=direct,fdr=fdr,
+			.main.loop(file.annot=file.annot,taxoname=taxoname,annot.method=annot.method,terms.name=terms.name,direct=direct,fdr=fdr,
 				go=TRUE,results.dir=results.dir,alpha=alpha,locus.name=locus.name,annot.clust.method=annot.clust.method,
 				up.frame=up.frame,down.frame=down.frame,restrict=restrict,ref.list=ref.list,annot.details=annot.details,level=level,
 				build.annot.net=build.annot.net,test.recovery=test.recovery,test.robust=test.robust,replace.annot=replace.annot,
 				locus.symbol=locus.symbol,annot.prox.measure=annot.prox.measure,coexp.matrix=coexp.matrix,parameter.list=parameter.list,
 				org=org,gene.net.details=gene.net.details,RV=RV,sigma=sigma)
 		}else{
-			main.loop(file.annot=file.annot,taxoname=taxoname,annot.method=annot.method,terms.name=terms.name,direct=direct,fdr=fdr,
+			.main.loop(file.annot=file.annot,taxoname=taxoname,annot.method=annot.method,terms.name=terms.name,direct=direct,fdr=fdr,
 				go=TRUE,results.dir=results.dir,annot.clust.method=annot.clust.method,alpha=alpha,locus.name=locus.name,
 				genes.frame=genes.frame,restrict=restrict,ref.list=ref.list,annot.details=annot.details,level=level,build.annot.net=build.annot.net,
 				test.recovery=test.recovery,test.robust=test.robust,replace.annot=replace.annot,locus.symbol=locus.symbol,
@@ -382,7 +385,7 @@ FunNet <- function(wd="", org="HS", two.lists=TRUE, up.frame=NULL, down.frame=NU
 
 	if(build.gene.net & !is.null(coexp.matrix)){
 
-		try(clusters <- build.coexp.net(coexp.matrix=coexp.matrix, locus.name=locus.name, locus.symbol=locus.symbol, 
+		try(clusters <- .build.coexp.net(coexp.matrix=coexp.matrix, locus.name=locus.name, locus.symbol=locus.symbol, 
 					gene.clust.method=gene.clust.method, gene.clusters=gene.clusters))
 
 		try(save(clusters,parameter.list, file=paste(getwd(),"/",results.dir,"/","co-expression_clusters.RData",sep=""),compress=T))
@@ -391,11 +394,11 @@ FunNet <- function(wd="", org="HS", two.lists=TRUE, up.frame=NULL, down.frame=NU
 		rownames(net.matrix) <- locus.symbol[rownames(net.matrix),2]
 		colnames(net.matrix) <- locus.symbol[colnames(net.matrix),2]
 
-		try(cyto.sym(net.matrix=net.matrix,file.net=paste(getwd(),"/",results.dir,"/","co-expression_net.txt",sep=""),
+		try(.cyto.sym(net.matrix=net.matrix,file.net=paste(getwd(),"/",results.dir,"/","co-expression_net.txt",sep=""),
 			diagonal=FALSE,thresh=NULL))
 		rm(net.matrix)
 
-		try(centrality <- genes.centrality(adj.matrix=coexp.matrix,clusters=clusters,taxoname=taxoname,locus.symbol=locus.symbol,
+		try(centrality <- .genes.centrality(adj.matrix=coexp.matrix,clusters=clusters,taxoname=taxoname,locus.symbol=locus.symbol,
 			results.dir=results.dir,coexp=TRUE))
 		if(two.lists){
 			up.down <- rbind(matrix(1,nrow(up.frame),1),matrix(0,nrow(down.frame),1))
@@ -441,13 +444,12 @@ FunNet <- function(wd="", org="HS", two.lists=TRUE, up.frame=NULL, down.frame=NU
 
 #############################################################################################
 #
-# 2. Function check.parameters() -> Verifies the correctness of the FunNet parameters
+# 2. Function .check.parameters() -> Verifies the correctness of the FunNet parameters
 #
 #############################################################################################
 
 
-
-check.parameters <- function(parameter.list,coexp.matrix,up.frame,down.frame,ref.list,genes.frame){
+.check.parameters <- function(parameter.list,coexp.matrix,up.frame,down.frame,ref.list,genes.frame){
 
 	cat(paste("\n\tChecking parameters for inconsistencies... \n",sep=""))	
 
@@ -732,11 +734,11 @@ check.parameters <- function(parameter.list,coexp.matrix,up.frame,down.frame,ref
 
 #############################################################################################
 #
-# 3. Function main.loop() -> Controls in detail the analytic algorithm
+# 3. Function .main.loop() -> Controls in detail the analytic algorithm
 #
 #############################################################################################
 
-main.loop <- function(file.annot, taxoname, annot.method, terms.name, direct=FALSE, fdr=FALSE,
+.main.loop <- function(file.annot, taxoname, annot.method, terms.name, direct=FALSE, fdr=FALSE,
 			go=FALSE, results.dir, alpha, locus.name, locus.symbol, annot.clust.method,
 			up.frame=NULL, down.frame=NULL, genes.frame=NULL, restrict=NULL, ref.list=NULL, 
 			annot.prox.measure=NULL, annot.details=FALSE, level=NA, 
@@ -754,9 +756,9 @@ genes.annot.matrix <- NULL
 
 if(!is.null(up.frame) & !is.null(down.frame) & is.null(genes.frame)){
 	
-	try(up.annot <- annotate.for.net(file.annot=file.annot,fdr=fdr,go=go,direct=direct,annot.method=annot.method,taxoname=taxoname,
+	try(up.annot <- .annotate.for.net(file.annot=file.annot,fdr=fdr,go=go,direct=direct,annot.method=annot.method,taxoname=taxoname,
 			terms.name=terms.name,restrict=restrict,genes.frame=up.frame,ref.list=ref.list,nom="UP"))
-	try(down.annot <- annotate.for.net(file.annot=file.annot,fdr=fdr,go=go,direct=direct,annot.method=annot.method,taxoname=taxoname,
+	try(down.annot <- .annotate.for.net(file.annot=file.annot,fdr=fdr,go=go,direct=direct,annot.method=annot.method,taxoname=taxoname,
 			terms.name=terms.name,restrict=restrict,genes.frame=down.frame,ref.list=ref.list,nom="DOWN"))
 	try(save(up.annot, down.annot, terms.name, parameter.list, file=paste(getwd(),"/",results.dir,"/",taxoname,"_annot_data.RData",sep="")),
 			silent=FALSE)
@@ -764,14 +766,14 @@ if(!is.null(up.frame) & !is.null(down.frame) & is.null(genes.frame)){
 
 	if(annot.details & exists("down.annot") & exists("up.annot")){
 	
-		try(resmat(annot.matrix=up.annot$annot.matrix,print.data=up.annot$print.data,go=go,terms.name=terms.name,taxoname=taxoname,
+		try(.resmat(annot.matrix=up.annot$annot.matrix,print.data=up.annot$print.data,go=go,terms.name=terms.name,taxoname=taxoname,
 			nom="UP",locus.name=locus.name,results.dir=results.dir,bgcolor="red",org=org))
-		try(resmat(annot.matrix=down.annot$annot.matrix,print.data=down.annot$print.data,go=go,terms.name=terms.name,taxoname=taxoname,
+		try(.resmat(annot.matrix=down.annot$annot.matrix,print.data=down.annot$print.data,go=go,terms.name=terms.name,taxoname=taxoname,
 			nom="DOWN",locus.name=locus.name,results.dir=results.dir,bgcolor="green",org=org))
 			
-		try(profil.plot.two(up.annot=up.annot, down.annot=down.annot, terms.name=terms.name, taxoname=taxoname, 
+		try(.profil.plot.two(up.annot=up.annot, down.annot=down.annot, terms.name=terms.name, taxoname=taxoname, 
 			dev ="pdf", extra=paste(getwd(),"/",results.dir,"/images/",sep="")))
-		try(profil.plot.two(up.annot=up.annot, down.annot=down.annot, terms.name=terms.name, taxoname=taxoname, 
+		try(.profil.plot.two(up.annot=up.annot, down.annot=down.annot, terms.name=terms.name, taxoname=taxoname, 
 			dev ="png", extra=paste(getwd(),"/",results.dir,"/images/",sep="")))
 	}
 
@@ -831,18 +833,18 @@ if(!is.null(up.frame) & !is.null(down.frame) & is.null(genes.frame)){
 }else if(!is.null(genes.frame)){
 
 
-	try(genes.annot <- annotate.for.net(file.annot=file.annot,fdr=fdr,go=go,direct=direct,annot.method=annot.method,taxoname=taxoname,
+	try(genes.annot <- .annotate.for.net(file.annot=file.annot,fdr=fdr,go=go,direct=direct,annot.method=annot.method,taxoname=taxoname,
 			terms.name=terms.name,restrict=restrict,genes.frame=genes.frame,ref.list=ref.list,nom="GENES"))
 	try(save(genes.annot, terms.name, parameter.list, file=paste(getwd(),"/",results.dir,"/",taxoname,"_annot_data.RData",sep="")),silent=FALSE)
 		
 
 	if(annot.details & exists("genes.annot")){
 	
-		try(resmat(annot.matrix=genes.annot$annot.matrix,print.data=genes.annot$print.data,go=go,terms.name=terms.name,taxoname=taxoname,
+		try(.resmat(annot.matrix=genes.annot$annot.matrix,print.data=genes.annot$print.data,go=go,terms.name=terms.name,taxoname=taxoname,
 			nom="GENES",locus.name=locus.name,results.dir=results.dir,bgcolor="blue",org=org))
-		try(profil.plot.one(genes.annot=genes.annot,terms.name=terms.name, taxoname=taxoname, 
+		try(.profil.plot.one(genes.annot=genes.annot,terms.name=terms.name, taxoname=taxoname, 
 			dev ="pdf", extra=paste(getwd(),"/",results.dir,"/images/",sep="")))
-		try(profil.plot.one(genes.annot=genes.annot, terms.name=terms.name, taxoname=taxoname, 
+		try(.profil.plot.one(genes.annot=genes.annot, terms.name=terms.name, taxoname=taxoname, 
 			dev ="png", extra=paste(getwd(),"/",results.dir,"/images/",sep="")))
 	}
 
@@ -872,24 +874,24 @@ if(build.annot.net & !is.null(annot.matrix)){
 	if(annot.clust.method == "umilds"){
 		if(test.robust & !is.na(replace.annot)){
 		
-			try(robust <- annot.robustness(annot.matrix=annot.matrix, adj.matrix=coexp.matrix, terms.name=terms.name, 
+			try(robust <- .annot.robustness(annot.matrix=annot.matrix, adj.matrix=coexp.matrix, terms.name=terms.name, 
 					RV=RV, method="sum", annot.prox.measure="dynamical", taxoname=taxoname, spectral=TRUE, 
 					replace.annot=replace.annot, sigma=sigma))
 			try(save(robust, parameter.list, file=paste(getwd(),"/",results.dir,"/",taxoname,"_annot_robustness_test.RData",sep="")))
 			
 		}else if(test.recovery & !is.na(replace.annot)){
 		
-			try(recovery <- annot.recovery(annot.matrix=annot.matrix, adj.matrix=coexp.matrix, RV=RV, method="sum", 
+			try(recovery <- .annot.recovery(annot.matrix=annot.matrix, adj.matrix=coexp.matrix, RV=RV, method="sum", 
 					replace.annot=replace.annot))
 			try(save(recovery, parameter.list, file=paste(getwd(),"/",results.dir,"/",taxoname,"_annot_recovery_test.RData",sep="")))
 			
 		}else{
 		
-			try(proximity <- dynamic.proximity(annot.matrix=annot.matrix, adj.matrix=coexp.matrix, RV=RV, 
+			try(proximity <- .dynamic.proximity(annot.matrix=annot.matrix, adj.matrix=coexp.matrix, RV=RV, 
 					method="sum", annotated.only=TRUE, sigma=sigma))
 			try(save(proximity,file=paste(getwd(),"/",results.dir,"/",taxoname,"_proximity_matrix.RData",sep=""),compress=T))
 			
-			try(clusters <- spectral.cluster(annot.proximity=proximity$annot.proximity, terms.name=terms.name, 
+			try(clusters <- .spectral.cluster(annot.proximity=proximity$annot.proximity, terms.name=terms.name, 
 					adj.matrix=coexp.matrix, marker.matrix=proximity$marker.matrix[[length(proximity$marker.matrix)]],					
 					annot.matrix=t(annot.matrix), iter.max=20000))
 
@@ -901,17 +903,17 @@ if(build.annot.net & !is.null(annot.matrix)){
 		
 		if(test.robust & !is.na(replace.annot)){
 
-			try(robust <- annot.robustness(annot.matrix=annot.matrix, adj.matrix=coexp.matrix, terms.name=terms.name, 
+			try(robust <- .annot.robustness(annot.matrix=annot.matrix, adj.matrix=coexp.matrix, terms.name=terms.name, 
 					RV=RV, method="sum", annot.prox.measure=annot.prox.measure,taxoname=taxoname,spectral=TRUE, 
 					replace.annot=replace.annot, sigma=sigma))
 			try(save(robust,parameter.list, file=paste(getwd(),"/",results.dir,"/",taxoname,"_annot_robustness_test.RData",sep="")))
 		}else{			
-			try(annot.distance <- annotation.distance(annot.matrix=t(annot.matrix), coexp.matrix=coexp.matrix, measure=annot.prox.measure))
-			try(proximity <- presumptive.proximity(annot.distance=annot.distance, sigma=sigma))
+			try(annot.distance <- .annotation.distance(annot.matrix=t(annot.matrix), coexp.matrix=coexp.matrix, measure=annot.prox.measure))
+			try(proximity <- .presumptive.proximity(annot.distance=annot.distance, sigma=sigma))
 			
 			try(save(proximity,file=paste(getwd(),"/",results.dir,"/",taxoname,"_proximity_matrix.RData",sep=""),compress=T))
 			
-			try(clusters <- spectral.cluster(annot.proximity=proximity, terms.name=terms.name, 
+			try(clusters <- .spectral.cluster(annot.proximity=proximity, terms.name=terms.name, 
 					adj.matrix=coexp.matrix, marker.matrix=NULL, annot.matrix=t(annot.matrix), 
 					iter.max=20000))
 			try(save(clusters,parameter.list, file=paste(getwd(),"/",results.dir,"/",taxoname,"_spectral_clusters.RData",sep=""),compress=T))
@@ -924,13 +926,13 @@ if(build.annot.net & !is.null(annot.matrix)){
 
 		if(test.robust & !is.na(replace.annot)){
 
-			try(robust <- annot.robustness(annot.matrix=t(annot.matrix), adj.matrix=coexp.matrix, terms.name=terms.name, 
+			try(robust <- .annot.robustness(annot.matrix=t(annot.matrix), adj.matrix=coexp.matrix, terms.name=terms.name, 
 					RV=RV, method="sum", annot.prox.measure=annot.prox.measure,taxoname=taxoname,spectral=FALSE, 
 					replace.annot=replace.annot))
 			try(save(robust,parameter.list, file=paste(getwd(),"/",results.dir,"/",taxoname,"_annot_robustness_test.RData",sep="")))
 		}else{			
 
-			try(clusters <- uc.knn(annot.matrix=annot.matrix, coexp.matrix=coexp.matrix, alpha = 0.05, taxoname=taxoname, 
+			try(clusters <- .uc.knn(annot.matrix=annot.matrix, coexp.matrix=coexp.matrix, alpha = 0.05, taxoname=taxoname, 
 					annot.prox.measure = annot.prox.measure, normal = TRUE,terms.name=terms.name))
 			try(save(clusters, parameter.list, file=paste(getwd(),"/",results.dir,"/",taxoname,"_knn_clusters.RData",sep=""),compress=T))
 		}
@@ -943,15 +945,15 @@ if(build.annot.net & !is.null(annot.matrix)){
 	if(!is.null(clusters)){
 		if(exists("down.annot") & exists("up.annot")){
 
-			try(cytoscape.two(clusters, file.net=paste(getwd(),"/",results.dir,"/",taxoname,"_annotations_net.txt",sep=""),
+			try(.cytoscape.two(clusters, file.net=paste(getwd(),"/",results.dir,"/",taxoname,"_annotations_net.txt",sep=""),
 				file.net.info=paste(getwd(),"/",results.dir,"/",taxoname,"_annotations_net_info.txt",sep=""),
 				file.param=paste(getwd(),"/",results.dir,"/",taxoname,"_annotations_net_proximity.txt",sep=""),
 				up.annot.matrix=up.annot.matrix,down.annot.matrix=down.annot.matrix,annot.clust.method=annot.clust.method))
 			
-			try(central.plot.two(up.annot=up.annot.matrix, down.annot=down.annot.matrix, clusters=clusters, taxoname=taxoname, 
+			try(.central.plot.two(up.annot=up.annot.matrix, down.annot=down.annot.matrix, clusters=clusters, taxoname=taxoname, 
 				dev ="png", extra=paste(getwd(),"/",results.dir,"/images/",sep=""), 
 				annot.clust.method=annot.clust.method))
-			try(central.plot.two(up.annot=up.annot.matrix, down.annot=down.annot.matrix, clusters=clusters, taxoname=taxoname, 
+			try(.central.plot.two(up.annot=up.annot.matrix, down.annot=down.annot.matrix, clusters=clusters, taxoname=taxoname, 
 				dev ="pdf", extra=paste(getwd(),"/",results.dir,"/images/",sep=""), 
 				annot.clust.method=annot.clust.method))
 			
@@ -959,7 +961,7 @@ if(build.annot.net & !is.null(annot.matrix)){
 				up.down <- rbind(matrix(1,nrow(up.frame),1),matrix(0,nrow(down.frame),1))
 				rownames(up.down) <- c(up.frame[,1],down.frame[,1])
 
-				try(centrality <- genes.centrality(adj.matrix=coexp.matrix,clusters=clusters,taxoname=taxoname,locus.symbol=locus.symbol,
+				try(centrality <- .genes.centrality(adj.matrix=coexp.matrix,clusters=clusters,taxoname=taxoname,locus.symbol=locus.symbol,
 					results.dir=results.dir))
 
 				try(write.table(cbind(rownames(clusters$gene.connect),as.vector(locus.symbol[rownames(clusters$gene.connect),2]),
@@ -976,20 +978,20 @@ if(build.annot.net & !is.null(annot.matrix)){
 
 		}else if(exists("genes.annot")){
 
-			try(cytoscape.one(clusters, file.net=paste(getwd(),"/",results.dir,"/",taxoname,"_annotations_net.txt",sep=""),
+			try(.cytoscape.one(clusters, file.net=paste(getwd(),"/",results.dir,"/",taxoname,"_annotations_net.txt",sep=""),
 				file.net.info=paste(getwd(),"/",results.dir,"/",taxoname,"_annotations_net_info.txt",sep=""),
 				file.param=paste(getwd(),"/",results.dir,"/",taxoname,"_annotations_net_proximity.txt",sep=""),
 				annot.clust.method=annot.clust.method))
 
-			try(central.plot.one(genes.annot=genes.annot.matrix, clusters=clusters, taxoname=taxoname, 
+			try(.central.plot.one(genes.annot=genes.annot.matrix, clusters=clusters, taxoname=taxoname, 
 				dev ="png", extra=paste(getwd(),"/",results.dir,"/images/",sep=""), 
 				annot.clust.method=annot.clust.method))
-			try(central.plot.one(genes.annot=genes.annot.matrix, clusters=clusters, taxoname=taxoname, 
+			try(.central.plot.one(genes.annot=genes.annot.matrix, clusters=clusters, taxoname=taxoname, 
 				dev ="pdf", extra=paste(getwd(),"/",results.dir,"/images/",sep=""), 
 				annot.clust.method=annot.clust.method))
 
 			if(gene.net.details){
-				try(centrality <- genes.centrality(adj.matrix=coexp.matrix,clusters=clusters,taxoname=taxoname,locus.symbol=locus.symbol,
+				try(centrality <- .genes.centrality(adj.matrix=coexp.matrix,clusters=clusters,taxoname=taxoname,locus.symbol=locus.symbol,
 					results.dir=results.dir))
 
 				try(write.table(cbind(rownames(clusters$gene.connect),as.vector(locus.symbol[rownames(clusters$gene.connect),2]),
@@ -1019,11 +1021,11 @@ if(build.annot.net & !is.null(annot.matrix)){
 
 #############################################################################################
 #
-# 4. Function build.coexp.net() -> Builds a "conventional" gene co-expression net if requested
+# 4. Function .build.coexp.net() -> Builds a "conventional" gene co-expression net if requested
 #
 #############################################################################################
 
-build.coexp.net <- function(coexp.matrix, locus.name, locus.symbol, gene.clust.method="hclust", gene.clusters=NA){
+.build.coexp.net <- function(coexp.matrix, locus.name, locus.symbol, gene.clust.method="hclust", gene.clusters=NA){
 	
 	cat(paste("\n\tBuilding conventional gene co-expression net... ",format(Sys.time(),"%X"),sep=""))	
 	
@@ -1041,7 +1043,7 @@ build.coexp.net <- function(coexp.matrix, locus.name, locus.symbol, gene.clust.m
 	if(gene.clust.method == "hclust"){
 		
 		hc <- hclust(dist.genes, method = "ward")
-		sil.hc <- as.vector(NULL)	# vector of silhouettes
+		.sil.hc <- as.vector(NULL)	# vector of silhouettes
 
 		# calculate cluster silhouettes
 
@@ -1049,14 +1051,14 @@ build.coexp.net <- function(coexp.matrix, locus.name, locus.symbol, gene.clust.m
 			# cut the tree 
 			memb <- cutree(hc, k = i)
 			sil <- silhouette(memb, dist.genes)
-			sil.hc <- c(sil.hc, mean(summary(sil)$clus.avg.width))
+			.sil.hc <- c(.sil.hc, mean(summary(sil)$clus.avg.width))
 		}
 
-		names(sil.hc) <- 2:(ncol(coexp.matrix)-1)	# choose the max silhouette
+		names(.sil.hc) <- 2:(ncol(coexp.matrix)-1)	# choose the max silhouette
 
 		# find the best partition 
 
-		best.index <- as.numeric(names(sil.hc[sil.hc == max(sil.hc)]))
+		best.index <- as.numeric(names(.sil.hc[.sil.hc == max(.sil.hc)]))
 
 		cat(paste("\n\t\tBest index: ",best.index,sep=""))
 		
@@ -1069,7 +1071,7 @@ build.coexp.net <- function(coexp.matrix, locus.name, locus.symbol, gene.clust.m
 		sil <- silhouette(best.partition, dist.genes)
 		sil.part <- mean(summary(sil)$clus.avg.width)
 		sil.cluster <- summary(sil)$clus.avg.width
-		sil <- sil.hc
+		sil <- .sil.hc
 	
 	}
 	
@@ -1132,12 +1134,12 @@ build.coexp.net <- function(coexp.matrix, locus.name, locus.symbol, gene.clust.m
 
 #############################################################################################
 #
-# 5. Function filter.genes() -> Filtering provided expression profiles
+# 5. Function .filter.genes() -> Filtering provided expression profiles
 #
 #############################################################################################
 
 
-filter.genes <- function(up.frame=NULL,down.frame=NULL,genes.frame=NULL,two.lists=TRUE,restrict=FALSE,ref.list=NULL,locus.name,logged=FALSE){
+.filter.genes <- function(up.frame=NULL,down.frame=NULL,genes.frame=NULL,two.lists=TRUE,restrict=FALSE,ref.list=NULL,locus.name,logged=FALSE){
 	
 	if(restrict == TRUE && !is.null(ref.list)){
 		
@@ -1394,11 +1396,11 @@ if(two.lists == FALSE && !is.null(genes.frame)){
 
 #############################################################################################
 #
-# 6. Function annotate.for.net() -> Routine for annotating genes and identifying relevant biological themes
+# 6. Function .annotate.for.net() -> Routine for annotating genes and identifying relevant biological themes
 #
 #############################################################################################
 
-annotate.for.net <- function(file.annot,fdr=FALSE,go=TRUE,direct=FALSE,taxoname,annot.method="specificity",terms.name,restrict=FALSE,
+.annotate.for.net <- function(file.annot,fdr=FALSE,go=TRUE,direct=FALSE,taxoname,annot.method="specificity",terms.name,restrict=FALSE,
 				genes.frame=NULL,ref.list=NULL,nom="",enriched=TRUE){
 	
 	# annot.method can take values "specificity", "terminological", or "decorrelated"
@@ -1463,7 +1465,7 @@ if(go & annot.method=="specificity"){	# GO annotation on separate ontological le
 			
 			for(i in 1:length(x)){
 				
-				pval.i <- pvalues(data.frame(exp.nr = length(unique(annot[annot[,2] == x[i],1])), exp.total = exp.total, pop.hits = length(unique(file.annot[file.annot[,2] == x[i],1])), pop.total = pop.total))
+				pval.i <- .pvalues(data.frame(exp.nr = length(unique(annot[annot[,2] == x[i],1])), exp.total = exp.total, pop.hits = length(unique(file.annot[file.annot[,2] == x[i],1])), pop.total = pop.total))
 				
 				y <- rbind(y,c(x[i],pval.i))
 			}
@@ -1471,7 +1473,7 @@ if(go & annot.method=="specificity"){	# GO annotation on separate ontological le
 			z <- NULL	# vector of significant annotations
 			
 			if(enriched){
-				if(!is.na(fdr)){z <- as.character(y[fdr.adjust(pvalues=as.numeric(y[,2]))<=(fdr/100),1])}	# vector with GO terms which are significantly enriched as corected by fdr
+				if(!is.na(fdr)){z <- as.character(y[.fdr.adjust(.pvalues=as.numeric(y[,2]))<=(fdr/100),1])}	# vector with GO terms which are significantly enriched as corected by fdr
 				if(is.na(fdr)){z <- as.character(y[as.numeric(y[,2])<=0.05,1])}
 			}else{
 				z <- as.character(y[,1])
@@ -1506,7 +1508,7 @@ if(go & annot.method=="specificity"){	# GO annotation on separate ontological le
 					print.data[[rang]][i,"exp.total"] <- exp.total
 					print.data[[rang]][i,"pop.hits"] <- length(unique(as.vector(file.annot[as.character(file.annot[,2]) == z[i],1])))
 					print.data[[rang]][i,"pop.total"] <- pop.total
-					print.data[[rang]][i,"pval"] <- pvalues(data.frame(exp.nr = length(unique(as.vector(annot[as.character(annot[,2]) == z[i],1]))), exp.total = exp.total, 
+					print.data[[rang]][i,"pval"] <- .pvalues(data.frame(exp.nr = length(unique(as.vector(annot[as.character(annot[,2]) == z[i],1]))), exp.total = exp.total, 
 										pop.hits = length(unique(as.vector(file.annot[as.character(file.annot[,2]) == z[i],1]))), pop.total = pop.total))
 	
 					rm(a,b)
@@ -1711,7 +1713,7 @@ if(go & annot.method=="specificity"){	# GO annotation on separate ontological le
 				for(j in 1:length(x)){
 	 				#print(data.frame(exp.nr = length(unique(annot[annot[,2] == x[j],1])), exp.total = exp.total, pop.hits = length(unique(file.annot[file.annot[,2] == x[j],1])), pop.total = pop.total))
 
-					pval.j <- pvalues(data.frame(exp.nr = length(unique(annot[annot[,2] == x[j],1])), exp.total = exp.total, pop.hits = length(unique(file.annot[file.annot[,2] == x[j],1])), pop.total = pop.total))
+					pval.j <- .pvalues(data.frame(exp.nr = length(unique(annot[annot[,2] == x[j],1])), exp.total = exp.total, pop.hits = length(unique(file.annot[file.annot[,2] == x[j],1])), pop.total = pop.total))
 
 					y <- rbind(y,c(x[j],pval.j))
 				}
@@ -1719,7 +1721,7 @@ if(go & annot.method=="specificity"){	# GO annotation on separate ontological le
 				z <- NULL	# vector of significant annotations
 				
 				if(enriched){
-					if(!is.na(fdr)){z <- as.character(y[fdr.adjust(pvalues=as.numeric(y[,2]))<=(fdr/100),1])}	# vector with GO terms which are significantly enriched as corected by fdr
+					if(!is.na(fdr)){z <- as.character(y[.fdr.adjust(.pvalues=as.numeric(y[,2]))<=(fdr/100),1])}	# vector with GO terms which are significantly enriched as corected by fdr
 					if(is.na(fdr)){z <- as.character(y[as.numeric(y[,2])<=0.05,1])}
 				}else{
 					z <- y[,1]
@@ -1759,7 +1761,7 @@ if(go & annot.method=="specificity"){	# GO annotation on separate ontological le
 						print.data[[i]][j,"exp.total"] <- exp.total
 						print.data[[i]][j,"pop.hits"] <- length(unique(file.annot[file.annot[,2] == z[j],1]))
 						print.data[[i]][j,"pop.total"] <- pop.total
-						print.data[[i]][j,"pval"] <- pvalues(data.frame(exp.nr = length(unique(annot[annot[,2] == z[j],1])), exp.total = exp.total, 
+						print.data[[i]][j,"pval"] <- .pvalues(data.frame(exp.nr = length(unique(annot[annot[,2] == z[j],1])), exp.total = exp.total, 
 										pop.hits = length(unique(file.annot[file.annot[,2] == z[j],1])), pop.total = pop.total))
 						
 					}
@@ -1981,14 +1983,14 @@ if(go & annot.method=="specificity"){	# GO annotation on separate ontological le
 			
 			for(i in 1:length(x)){
 				
-				pval.i <- pvalues(data.frame(exp.nr = length(unique(annot[annot[,2] == x[i],1])), exp.total = exp.total, pop.hits = length(unique(file.annot[file.annot[,2] == x[i],1])), pop.total = pop.total))
+				pval.i <- .pvalues(data.frame(exp.nr = length(unique(annot[annot[,2] == x[i],1])), exp.total = exp.total, pop.hits = length(unique(file.annot[file.annot[,2] == x[i],1])), pop.total = pop.total))
 				
 				y <- rbind(y,c(x[i],as.character(pval.i)))
 			}
 			
 			z <- NULL	# vector of significant annotations
 			
-			if(!is.na(fdr)){z <- as.character(y[fdr.adjust(pvalues=as.numeric(y[,2]))<=(fdr/100),1])}	# vector with GO terms which are significantly enriched as corected by fdr
+			if(!is.na(fdr)){z <- as.character(y[.fdr.adjust(.pvalues=as.numeric(y[,2]))<=(fdr/100),1])}	# vector with GO terms which are significantly enriched as corected by fdr
 			if(is.na(fdr)){z <- as.character(y[as.numeric(y[,2])<=0.05,1])}
 		
 		
@@ -2018,7 +2020,7 @@ if(go & annot.method=="specificity"){	# GO annotation on separate ontological le
 					print.data[i,"exp.total"] <- exp.total
 					print.data[i,"pop.hits"] <- length(unique(file.annot[file.annot[,2] == z[i],1]))
 					print.data[i,"pop.total"] <- pop.total
-					print.data[i,"pval"] <- pvalues(data.frame(exp.nr = print.data[i,"exp.nr"], exp.total = exp.total, 
+					print.data[i,"pval"] <- .pvalues(data.frame(exp.nr = print.data[i,"exp.nr"], exp.total = exp.total, 
 										pop.hits = print.data[i,"pop.hits"], pop.total = pop.total))
 		
 				}
@@ -2062,7 +2064,7 @@ if(go & annot.method=="specificity"){	# GO annotation on separate ontological le
 							print.data1[i,"exp.total"] <- exp.total
 							print.data1[i,"pop.hits"] <- length(unique(file.annot[file.annot[,2] == m[i],1]))
 							print.data1[i,"pop.total"] <- pop.total
-							print.data1[i,"pval"] <- pvalues(data.frame(exp.nr = length(unique(annot[annot[,2] == m[i],1])), exp.total = exp.total, 
+							print.data1[i,"pval"] <- .pvalues(data.frame(exp.nr = length(unique(annot[annot[,2] == m[i],1])), exp.total = exp.total, 
 											pop.hits = length(unique(file.annot[file.annot[,2] == m[i],1])), pop.total = pop.total))
 																
 						}
@@ -2086,7 +2088,7 @@ if(go & annot.method=="specificity"){	# GO annotation on separate ontological le
 							# we update available data on these annotations
 							print.data[n[i],"exp.nr"] <- length(unique(annot[annot[,2] == n[i],1]))
 							print.data[n[i],"pop.hits"] <- length(unique(file.annot[file.annot[,2] == n[i],1]))
-							print.data[n[i],"pval"] <- pvalues(data.frame(exp.nr = length(unique(annot[annot[,2] == n[i],1])), exp.total = exp.total, 
+							print.data[n[i],"pval"] <- .pvalues(data.frame(exp.nr = length(unique(annot[annot[,2] == n[i],1])), exp.total = exp.total, 
 											pop.hits = length(unique(file.annot[file.annot[,2] == n[i],1])), pop.total = pop.total))
 																					
 						}
@@ -2112,7 +2114,7 @@ if(go & annot.method=="specificity"){	# GO annotation on separate ontological le
 						print.data1[i,"exp.total"] <- exp.total
 						print.data1[i,"pop.hits"] <- length(unique(file.annot[file.annot[,2] == z[i],1]))
 						print.data1[i,"pop.total"] <- pop.total
-						print.data1[i,"pval"] <- pvalues(data.frame(exp.nr = length(unique(annot[annot[,2] == z[i],1])), exp.total = exp.total, 
+						print.data1[i,"pval"] <- .pvalues(data.frame(exp.nr = length(unique(annot[annot[,2] == z[i],1])), exp.total = exp.total, 
 										pop.hits = length(unique(file.annot[file.annot[,2] == z[i],1])), pop.total = pop.total))
 
 											
@@ -2278,7 +2280,7 @@ if(go & annot.method=="specificity"){	# GO annotation on separate ontological le
 	
 		for(i in 1:length(terms.annot)){
 
-			pval.i <- pvalues(data.frame(exp.nr = length(unique(as.character(annot[as.character(annot[,2]) == terms.annot[i],1]))), 
+			pval.i <- .pvalues(data.frame(exp.nr = length(unique(as.character(annot[as.character(annot[,2]) == terms.annot[i],1]))), 
 						exp.total = exp.total, 
 						pop.hits = length(unique(as.character(file.annot[as.character(file.annot[,2]) == terms.annot[i],1]))), 
 						pop.total = pop.total))
@@ -2289,7 +2291,7 @@ if(go & annot.method=="specificity"){	# GO annotation on separate ontological le
 		z <- NULL
 
 		if(enriched){
-			if(!is.na(fdr)){z <- as.character(y[fdr.adjust(pvalues=as.numeric(y[,2]))<=(fdr/100),1])}	# vector with KEGG terms which are significantly enriched as corected by fdr
+			if(!is.na(fdr)){z <- as.character(y[.fdr.adjust(.pvalues=as.numeric(y[,2]))<=(fdr/100),1])}	# vector with KEGG terms which are significantly enriched as corected by fdr
 			if(is.na(fdr)){z <- as.character(y[as.numeric(y[,2])<=0.05,1])}
 		}else{
 			z <- as.character(y[,1])
@@ -2318,7 +2320,7 @@ if(go & annot.method=="specificity"){	# GO annotation on separate ontological le
 			print.data[i,"exp.total"] <- exp.total
 			print.data[i,"pop.hits"] <- length(unique(as.character(file.annot[as.character(file.annot[,2]) == z[i],1])))
 			print.data[i,"pop.total"] <- pop.total
-			print.data[i,"pval"] <- pvalues(data.frame(exp.nr = length(unique(as.character(annot[as.character(annot[,2]) == z[i],1]))), 
+			print.data[i,"pval"] <- .pvalues(data.frame(exp.nr = length(unique(as.character(annot[as.character(annot[,2]) == z[i],1]))), 
 								exp.total = exp.total, 
 								pop.hits = length(unique(as.character(file.annot[as.character(file.annot[,2]) == z[i],1]))), 
 								pop.total = pop.total))
@@ -2340,12 +2342,12 @@ if(go & annot.method=="specificity"){	# GO annotation on separate ontological le
 
 #############################################################################################
 #
-# 7. Function dynamic.proximity() -> Computes biological themes proximity within a convergent dynamic system build from annotations and a transcriptional co-expression matrix
+# 7. Function .dynamic.proximity() -> Computes biological themes proximity within a convergent dynamic system build from annotations and a transcriptional co-expression matrix
 #
 #############################################################################################
 
 
-dynamic.proximity <- function(annot.matrix=NULL, adj.matrix=NULL, RV=0.90, sigma=NA, method="sum", annotated.only=TRUE){
+.dynamic.proximity <- function(annot.matrix=NULL, adj.matrix=NULL, RV=0.90, sigma=NA, method="sum", annotated.only=TRUE){
 
 	
 	if(!is.null(annot.matrix) & !is.null(adj.matrix)){	# genes on rows, categories (future markers) on columns
@@ -2514,12 +2516,12 @@ dynamic.proximity <- function(annot.matrix=NULL, adj.matrix=NULL, RV=0.90, sigma
 
 #############################################################################################
 #
-# 8. Function spectral.cluster() -> Spectral clustering of biological themes based on their dynamic diffusion profiles in the co-expression network
+# 8. Function .spectral.cluster() -> Spectral clustering of biological themes based on their dynamic diffusion profiles in the co-expression network
 #
 #############################################################################################
 
 
-spectral.cluster <- function(annot.proximity=NULL, marker.matrix=NULL, adj.matrix=NULL, terms.name=NULL, annot.matrix=NULL, iter.max=20000, k=NULL, 
+.spectral.cluster <- function(annot.proximity=NULL, marker.matrix=NULL, adj.matrix=NULL, terms.name=NULL, annot.matrix=NULL, iter.max=20000, k=NULL, 
 				nstart=10){
 	
 	
@@ -2768,11 +2770,11 @@ spectral.cluster <- function(annot.proximity=NULL, marker.matrix=NULL, adj.matri
 
 #############################################################################################
 #
-# 9. Function genes.centrality() -> Buiding co-expression nets and calculating centrality measures in gene co-expression nets
+# 9. Function .genes.centrality() -> Buiding co-expression nets and calculating centrality measures in gene co-expression nets
 #
 #############################################################################################
 
-genes.centrality <- function(adj.matrix,clusters=NULL,taxoname,locus.symbol=NULL,results.dir=NULL,coexp=FALSE){
+.genes.centrality <- function(adj.matrix,clusters=NULL,taxoname,locus.symbol=NULL,results.dir=NULL,coexp=FALSE){
 	
 	centrality <- NULL
 	
@@ -2791,9 +2793,9 @@ genes.centrality <- function(adj.matrix,clusters=NULL,taxoname,locus.symbol=NULL
 		rownames(adj.matrix.connect) <- locus.symbol[rownames(adj.matrix.connect),2]
 		colnames(adj.matrix.connect) <- locus.symbol[colnames(adj.matrix.connect),2]
 
-		cyto.sym(net.matrix=adj.matrix.annot,file.net=paste(getwd(),"/",results.dir,"/",taxoname,"_annotated_genes_net.txt",sep=""),
+		.cyto.sym(net.matrix=adj.matrix.annot,file.net=paste(getwd(),"/",results.dir,"/",taxoname,"_annotated_genes_net.txt",sep=""),
 			diagonal=FALSE,thresh=NULL)
-		cyto.sym(net.matrix=adj.matrix.connect,file.net=paste(getwd(),"/",results.dir,"/",taxoname,"_connected_genes_net.txt",sep=""),
+		.cyto.sym(net.matrix=adj.matrix.connect,file.net=paste(getwd(),"/",results.dir,"/",taxoname,"_connected_genes_net.txt",sep=""),
 			diagonal=FALSE,thresh=NULL)
 
 		centrality <- matrix(NA,nrow(adj.matrix),8)
@@ -2832,12 +2834,12 @@ genes.centrality <- function(adj.matrix,clusters=NULL,taxoname,locus.symbol=NULL
 
 #############################################################################################
 #
-# 10. Function annot.recovery() -> Experimental: tests the recovery of known functional annotations by the dynamic system
+# 10. Function .annot.recovery() -> Experimental: tests the recovery of known functional annotations by the dynamic system
 #
 #############################################################################################
 
 
-annot.recovery <- function(annot.matrix=NULL, adj.matrix=NULL, RV=0.90, method="sum", replace.annot=10){
+.annot.recovery <- function(annot.matrix=NULL, adj.matrix=NULL, RV=0.90, method="sum", replace.annot=10){
 	
 		
 	connectivity <- apply(adj.matrix,1,sum)
@@ -2866,7 +2868,7 @@ annot.recovery <- function(annot.matrix=NULL, adj.matrix=NULL, RV=0.90, method="
 		annot.matrix.new <- annot.matrix
 		annot.matrix.new[select.genes,] <- 0
 	
-		marker.matrix <- dynamic.proximity(annot.matrix=annot.matrix.new, adj.matrix=adj.matrix, RV=RV, method="sum")$marker.matrix
+		marker.matrix <- .dynamic.proximity(annot.matrix=annot.matrix.new, adj.matrix=adj.matrix, RV=RV, method="sum")$marker.matrix
 		marker.matrix <- marker.matrix[[length(marker.matrix)]]
 	
 		marker.matrix[marker.matrix >0] <- 1
@@ -2881,7 +2883,7 @@ annot.recovery <- function(annot.matrix=NULL, adj.matrix=NULL, RV=0.90, method="
 		print("")
 		
 	}else if(replace.annot == 0){
-		marker.matrix <- dynamic.proximity(annot.matrix=annot.matrix.new, adj.matrix=adj.matrix, RV=RV, method="sum")$marker.matrix
+		marker.matrix <- .dynamic.proximity(annot.matrix=annot.matrix.new, adj.matrix=adj.matrix, RV=RV, method="sum")$marker.matrix
 		marker.matrix <- marker.matrix[[length(marker.matrix)]]
 	
 		marker.matrix[marker.matrix >0] <- 1
@@ -2904,12 +2906,12 @@ annot.recovery <- function(annot.matrix=NULL, adj.matrix=NULL, RV=0.90, method="
 
 #############################################################################################
 #
-# 11. Function annot.robustness() -> Experimental: tests the robustness to missing functional annotations
+# 11. Function .annot.robustness() -> Experimental: tests the robustness to missing functional annotations
 #
 #############################################################################################
 
 
-annot.robustness <- function(annot.matrix=NULL, adj.matrix=NULL, terms.name=NULL, taxoname, RV=0.90, method="sum", 
+.annot.robustness <- function(annot.matrix=NULL, adj.matrix=NULL, terms.name=NULL, taxoname, RV=0.90, method="sum", 
 			spectral=TRUE, replace.annot=0, annot.prox.measure=NULL, sigma=NA){
 	
 	
@@ -2954,18 +2956,18 @@ annot.robustness <- function(annot.matrix=NULL, adj.matrix=NULL, terms.name=NULL
 				#annot.proximity <- NULL
 			
 				if(annot.prox.measure=="dynamical"){
-					try(proximity <- dynamic.proximity(annot.matrix=annot.matrix.new, adj.matrix=adj.matrix, RV=RV, 
+					try(proximity <- .dynamic.proximity(annot.matrix=annot.matrix.new, adj.matrix=adj.matrix, RV=RV, 
 									method="sum", annotated.only=TRUE, sigma=sigma))				
 				
-					try(best.part <- spectral.cluster(annot.proximity=proximity$annot.proximity, terms.name=terms.name, 
+					try(best.part <- .spectral.cluster(annot.proximity=proximity$annot.proximity, terms.name=terms.name, 
 									adj.matrix=adj.matrix, nstart=10, annot.matrix=t(annot.matrix.new), 
 									marker.matrix=proximity$marker.matrix[[length(proximity$marker.matrix)]],					
 									iter.max=20000)$best.partition)
 				}else{
-					try(annot.distance <- annotation.distance(annot.matrix=t(annot.matrix.new), coexp.matrix=adj.matrix, measure=annot.prox.measure))
-					try(proximity <- presumptive.proximity(annot.distance=annot.distance, sigma=sigma))
+					try(annot.distance <- .annotation.distance(annot.matrix=t(annot.matrix.new), coexp.matrix=adj.matrix, measure=annot.prox.measure))
+					try(proximity <- .presumptive.proximity(annot.distance=annot.distance, sigma=sigma))
 					
-					try(best.part <- spectral.cluster(annot.proximity=proximity, terms.name=terms.name, 
+					try(best.part <- .spectral.cluster(annot.proximity=proximity, terms.name=terms.name, 
 									adj.matrix=adj.matrix, nstart=10, annot.matrix=t(annot.matrix.new), 
 									marker.matrix=NULL, iter.max=20000)$best.partition)
 	
@@ -2973,7 +2975,7 @@ annot.robustness <- function(annot.matrix=NULL, adj.matrix=NULL, terms.name=NULL
 				
 			}else{
 				
-				try(best.part <- uc.knn(annot.matrix=t(annot.matrix.new), coexp.matrix=adj.matrix, alpha = 0.05, taxoname=taxoname, 
+				try(best.part <- .uc.knn(annot.matrix=t(annot.matrix.new), coexp.matrix=adj.matrix, alpha = 0.05, taxoname=taxoname, 
 						annot.prox.measure = annot.prox.measure, normal = TRUE, terms.name=terms.name)$best.partition)
 				
 			}
@@ -3001,19 +3003,19 @@ annot.robustness <- function(annot.matrix=NULL, adj.matrix=NULL, terms.name=NULL
 				#annot.proximity <- NULL
 			
 				if(annot.prox.measure=="dynamical"){
-					try(proximity <- dynamic.proximity(annot.matrix=annot.matrix, adj.matrix=adj.matrix, RV=RV, 
+					try(proximity <- .dynamic.proximity(annot.matrix=annot.matrix, adj.matrix=adj.matrix, RV=RV, 
 									method="sum", annotated.only=TRUE, sigma=sigma))				
 
-					try(best.part <- spectral.cluster(annot.proximity=proximity$annot.proximity, terms.name=terms.name, 
+					try(best.part <- .spectral.cluster(annot.proximity=proximity$annot.proximity, terms.name=terms.name, 
 									adj.matrix=adj.matrix, nstart=10, annot.matrix=t(annot.matrix), 
 									marker.matrix=proximity$marker.matrix[[length(proximity$marker.matrix)]],					
 									iter.max=20000)$best.partition)
 				}else{
-					try(annot.distance <- annotation.distance(annot.matrix=t(annot.matrix), coexp.matrix=adj.matrix, 
+					try(annot.distance <- .annotation.distance(annot.matrix=t(annot.matrix), coexp.matrix=adj.matrix, 
 											measure=annot.prox.measure))
-					try(proximity <- presumptive.proximity(annot.distance=annot.distance, sigma=sigma))
+					try(proximity <- .presumptive.proximity(annot.distance=annot.distance, sigma=sigma))
 					
-					try(best.part <- spectral.cluster(annot.proximity=proximity, terms.name=terms.name, 
+					try(best.part <- .spectral.cluster(annot.proximity=proximity, terms.name=terms.name, 
 									adj.matrix=adj.matrix, nstart=10, annot.matrix=t(annot.matrix), 
 									marker.matrix=NULL, iter.max=20000)$best.partition)
 
@@ -3021,7 +3023,7 @@ annot.robustness <- function(annot.matrix=NULL, adj.matrix=NULL, terms.name=NULL
 				
 			}else{
 				
-				try(best.part <- uc.knn(annot.matrix=t(annot.matrix), coexp.matrix=adj.matrix, alpha = 0.05, taxoname=taxoname, 
+				try(best.part <- .uc.knn(annot.matrix=t(annot.matrix), coexp.matrix=adj.matrix, alpha = 0.05, taxoname=taxoname, 
 						annot.prox.measure = annot.prox.measure, normal = TRUE, terms.name=terms.name)$best.partition)
 				
 			}
@@ -3049,7 +3051,7 @@ annot.robustness <- function(annot.matrix=NULL, adj.matrix=NULL, terms.name=NULL
 	for(i in 1:length(best.part.list)){
 	
 		if(!is.null(best.part.list[[i]])){
-			try(part.sym[i] <- part.distance(part1=best.part.list[[1]],part2=best.part.list[[i]]))
+			try(part.sym[i] <- .part.distance(part1=best.part.list[[1]],part2=best.part.list[[i]]))
 		}else{
 			part.sym[i] <- NA
 		}
@@ -3067,14 +3069,14 @@ annot.robustness <- function(annot.matrix=NULL, adj.matrix=NULL, terms.name=NULL
 
 #############################################################################################
 #
-# 12. Function hc.cluster() -> Experimental: hierarchical clustering of annotations diffusion profiles
+# 12. Function .hc.cluster() -> Experimental: hierarchical clustering of annotations diffusion profiles
 #
 #############################################################################################
 
 
 # experimental!!!
 
-hc.cluster <- function(marker.matrix=NULL,steps=NULL,terms.name=NULL,annot.matrix=NULL){
+.hc.cluster <- function(marker.matrix=NULL,steps=NULL,terms.name=NULL,annot.matrix=NULL){
 	
 	
 	if(!is.null(marker.matrix) && !is.null(annot.matrix) && !is.null(terms.name)){
@@ -3087,7 +3089,7 @@ hc.cluster <- function(marker.matrix=NULL,steps=NULL,terms.name=NULL,annot.matri
 		
 		dist.annotation <- dist(t(color), method="euclid")
 		hc <- hclust(dist.annotation, method = "complete")
-  		sil.hc <- as.vector(NULL)	# vector of silhouettes
+  		.sil.hc <- as.vector(NULL)	# vector of silhouettes
 
  		# calculate cluster silhouettes
   
@@ -3095,14 +3097,14 @@ hc.cluster <- function(marker.matrix=NULL,steps=NULL,terms.name=NULL,annot.matri
     			# cut the tree 
     			memb <- cutree(hc, k = i)
     			sil <- silhouette(memb, dist.annotation)
-    			sil.hc <- c(sil.hc, mean(summary(sil)$clus.avg.width))
+    			.sil.hc <- c(.sil.hc, mean(summary(sil)$clus.avg.width))
   		}
 		
-		names(sil.hc) <- 2:(ncol(color)-1)	# choose the max silhouette
+		names(.sil.hc) <- 2:(ncol(color)-1)	# choose the max silhouette
 		
 		# find the best partition 
 		
-		best.index <- as.numeric(names(sil.hc[sil.hc == max(sil.hc)]))
+		best.index <- as.numeric(names(.sil.hc[.sil.hc == max(.sil.hc)]))
 		
 		print(paste("Best index: ",best.index,sep=""))
 		
@@ -3196,12 +3198,12 @@ hc.cluster <- function(marker.matrix=NULL,steps=NULL,terms.name=NULL,annot.matri
 
 #############################################################################################
 #
-# 13. Function sym.annotation() -> Experimental: computes a similarity matrix among transcripts based on co-annotations
+# 13. Function .sym.annotation() -> Experimental: computes a similarity matrix among transcripts based on co-annotations
 #
 #############################################################################################
 
 
-sym.annotation <- function(annot.matrix=NULL){
+.sym.annotation <- function(annot.matrix=NULL){
 	
 	adj.matrix <- NULL
 	
@@ -3237,12 +3239,12 @@ sym.annotation <- function(annot.matrix=NULL){
 
 #############################################################################################
 #
-# 14. Function part.distance() -> Compute a similarity between two partition vectors involving the same objects based on Jaccard's index
+# 14. Function .part.distance() -> Compute a similarity between two partition vectors involving the same objects based on Jaccard's index
 #
 #############################################################################################
 
 
-part.distance <- function(part1=NULL, part2=NULL){
+.part.distance <- function(part1=NULL, part2=NULL){
 	
 	p.dist <- NULL
 	#try(part1 <- part1[as.character(unique(names(part1)))])
@@ -3291,14 +3293,14 @@ part.distance <- function(part1=NULL, part2=NULL){
 
 #############################################################################################
 #
-# 15. Functions cytoscape.two() & cytoscape.one() & cyto.sim() -> Internal routines which write Cytoscape format network files
+# 15. Functions .cytoscape.two() & .cytoscape.one() & cyto.sim() -> Internal routines which write Cytoscape format network files
 #
 #############################################################################################
 
 
 # for results obtained for two lists of genes
 
-cytoscape.two <- function(clusters,file.net,file.net.info,file.param,up.annot.matrix,down.annot.matrix,annot.clust.method,threshold=NULL){
+.cytoscape.two <- function(clusters,file.net,file.net.info,file.param,up.annot.matrix,down.annot.matrix,annot.clust.method,threshold=NULL){
 	
 	# file.param to store proximity parameters
 	# file.annot to store network supplementary info: column 1 = categories names, column two = cluster belonging, column 3 = Up(1) or Down(0)
@@ -3312,11 +3314,11 @@ cytoscape.two <- function(clusters,file.net,file.net.info,file.param,up.annot.ma
 	rownames(annot.proximity) <- clusters$terms.name[rownames(annot.proximity),2]
 	
 	#### normalize the connectivity matrix
-	norm.connect <- normalize.connect(clusters=clusters)
+	norm.connect <- .normalize.connect(clusters=clusters)
 	norm.connect$strength.matrix <- norm.connect$strength.matrix[rownames(annot.proximity),colnames(annot.proximity)]
 	norm.connect$intra.matrix <- norm.connect$intra.matrix[rownames(annot.proximity),colnames(annot.proximity)]
 	
-	cyto.sym(net.matrix=annot.proximity,file.net=file.net,thresh=threshold,diagonal=FALSE,norm.connect=norm.connect)
+	.cyto.sym(net.matrix=annot.proximity,file.net=file.net,thresh=threshold,diagonal=FALSE,norm.connect=norm.connect)
 	
 	up.down <- as.vector(matrix(NA,length(clusters$best.partition),1))
 	names(up.down) <- names(clusters$best.partition)
@@ -3384,7 +3386,7 @@ cytoscape.two <- function(clusters,file.net,file.net.info,file.param,up.annot.ma
 
 # for results obtained for one list of genes
 
-cytoscape.one <- function(clusters,file.net,file.net.info,file.param,terms.name,annot.clust.method,threshold=NULL){
+.cytoscape.one <- function(clusters,file.net,file.net.info,file.param,terms.name,annot.clust.method,threshold=NULL){
 
 	# file.param to store proximity parameters
 	# file.annot to store network supplementary info: column 1 = categories names, column two = cluster belonging
@@ -3398,11 +3400,11 @@ cytoscape.one <- function(clusters,file.net,file.net.info,file.param,terms.name,
 	rownames(annot.proximity) <- clusters$terms.name[rownames(annot.proximity),2]
 	
 	#### normalize the connectivity matrix
-	norm.connect <- normalize.connect(clusters=clusters)
+	norm.connect <- .normalize.connect(clusters=clusters)
 	norm.connect$strength.matrix <- norm.connect$strength.matrix[rownames(annot.proximity),colnames(annot.proximity)]
 	norm.connect$intra.matrix <- norm.connect$intra.matrix[rownames(annot.proximity),colnames(annot.proximity)]
 		
-	cyto.sym(net.matrix=annot.proximity,file.net=file.net,thresh=threshold,diagonal=FALSE,norm.connect=norm.connect)
+	.cyto.sym(net.matrix=annot.proximity,file.net=file.net,thresh=threshold,diagonal=FALSE,norm.connect=norm.connect)
 	
 	
 	adj.matrix <- clusters$annot.proximity
@@ -3442,7 +3444,7 @@ cytoscape.one <- function(clusters,file.net,file.net.info,file.param,terms.name,
 
 # writing a Cytoscape format net file
 
-cyto.sym <- function(net.matrix,file.net,diagonal=FALSE,thresh=NULL,link.type="pp",norm.connect=NULL){
+.cyto.sym <- function(net.matrix,file.net,diagonal=FALSE,thresh=NULL,link.type="pp",norm.connect=NULL){
 	
 	if(!diagonal){diag(net.matrix) <- 0}
 	
@@ -3491,7 +3493,7 @@ cyto.sym <- function(net.matrix,file.net,diagonal=FALSE,thresh=NULL,link.type="p
 
 # routine for normalizing the connectivity matrix
 
-normalize.connect <- function(clusters=NULL){
+.normalize.connect <- function(clusters=NULL){
 
 	strength.matrix <- NULL
 	intra.matrix <- NULL
@@ -3568,11 +3570,11 @@ normalize.connect <- function(clusters=NULL){
 
 #############################################################################################
 #
-# 16. Function resmat() -> Organizing and saving of the results (isolated terms) taken from an annotation matrix
+# 16. Function .resmat() -> Organizing and saving of the results (isolated terms) taken from an annotation matrix
 #
 #############################################################################################
 
-resmat <- function(annot.matrix,print.data,terms.name,taxoname,nom,locus.name,results.dir="html",go=FALSE,bgcolor="blue",org="HS"){
+.resmat <- function(annot.matrix,print.data,terms.name,taxoname,nom,locus.name,results.dir="html",go=FALSE,bgcolor="blue",org="HS"){
 
 	#	"nom" may be "UP" or "DOWN"
 	#	"bgcolor" indicates the background color for KEGG map objects
@@ -3581,7 +3583,7 @@ resmat <- function(annot.matrix,print.data,terms.name,taxoname,nom,locus.name,re
 
 	cat(paste("\n\tSaving ",taxoname," ",nom," annotation results... ",format(Sys.time(), "%X"),sep=""))
 	
-	if(is.null(funnet.version)){funnet.version <- "experimental version"}
+	if(is.null(.funnet.version)){.funnet.version <- "experimental version"}
 	rownames(terms.name) <- terms.name[,1]
 
 if(is.list(annot.matrix)){
@@ -3770,7 +3772,7 @@ if(is.list(annot.matrix)){
 						..........................................................................................................................</p>
 						<p>
 						This file was produced on ",date()," with <a target='_blank' href='http://corneliu.henegar.info/FunNet.htm' style='text-decoration: none'>
-						<font size='3'>FunNet ",funnet.version,"</font></a> based on GO and KEGG annotations updated on ",annot.date,".</p>
+						<font size='3'>FunNet ",.funnet.version,"</font></a> based on GO and KEGG annotations updated on ",annot.date,".</p>
 						</body>
 				
 						</html>",sep="")
@@ -3997,7 +3999,7 @@ if(is.list(annot.matrix)){
 							..........................................................................................................................</p>
 							<p>
 							This file was produced on ",date()," with <a target='_blank' href='http://corneliu.henegar.info/FunNet.htm' style='text-decoration: none'>
-							<font size='3'>FunNet ",funnet.version,"</font></a> based on GO and KEGG annotations updated on ",annot.date,".</p>
+							<font size='3'>FunNet ",.funnet.version,"</font></a> based on GO and KEGG annotations updated on ",annot.date,".</p>
 							</body>
 					
 							</html>",sep="")
@@ -4020,12 +4022,12 @@ if(is.list(annot.matrix)){
 
 #############################################################################################
 #
-# 17. Function profil.plot.two() -> Plot functional profiles as back-to-back bar plots (up and down-regulated themes)
+# 17. Function .profil.plot.two() -> Plot functional profiles as back-to-back bar plots (up and down-regulated themes)
 #
 #############################################################################################
 
 
-profil.plot.two <- function(up.annot=NULL, down.annot=NULL, terms.name=NULL, taxoname=NULL, height=NA, width=NA, 
+.profil.plot.two <- function(up.annot=NULL, down.annot=NULL, terms.name=NULL, taxoname=NULL, height=NA, width=NA, 
 				compute.dim=TRUE, dev ="png", extra=""){
 
 	
@@ -4300,12 +4302,12 @@ profil.plot.two <- function(up.annot=NULL, down.annot=NULL, terms.name=NULL, tax
 
 #############################################################################################
 #
-# 17. Function profil.plot.one() -> Plot functional profiles as bar plots (one list of themes)
+# 17. Function .profil.plot.one() -> Plot functional profiles as bar plots (one list of themes)
 #
 #############################################################################################
 
 
-profil.plot.one <- function(genes.annot=NULL, terms.name=NULL, taxoname=NULL, height=NA, width=NA, 
+.profil.plot.one <- function(genes.annot=NULL, terms.name=NULL, taxoname=NULL, height=NA, width=NA, 
 				compute.dim=TRUE, dev ="png", extra=""){
 
 	
@@ -4493,12 +4495,12 @@ profil.plot.one <- function(genes.annot=NULL, terms.name=NULL, taxoname=NULL, he
 
 #############################################################################################
 #
-# 18. Function central.plot.two() -> Plot centralities of functional themes as back-to-back bar plots (up and down-regulated themes)
+# 18. Function .central.plot.two() -> Plot centralities of functional themes as back-to-back bar plots (up and down-regulated themes)
 #
 #############################################################################################
 
 
-central.plot.two <- function(up.annot=NULL, down.annot=NULL, clusters=NULL, taxoname=NULL, height=NA, width=NA, 
+.central.plot.two <- function(up.annot=NULL, down.annot=NULL, clusters=NULL, taxoname=NULL, height=NA, width=NA, 
 				compute.dim=TRUE, dev ="png", extra="", annot.clust.method="umilds"){
 				
 	graph.name <- NULL
@@ -4811,12 +4813,12 @@ central.plot.two <- function(up.annot=NULL, down.annot=NULL, clusters=NULL, taxo
 
 #############################################################################################
 #
-# 18. Function central.plot.one() -> Plot centralities of functional themes as bar plots
+# 18. Function .central.plot.one() -> Plot centralities of functional themes as bar plots
 #
 #############################################################################################
 
 
-central.plot.one <- function(genes.annot=NULL, clusters=NULL, taxoname=NULL, height=NA, width=NA, 
+.central.plot.one <- function(genes.annot=NULL, clusters=NULL, taxoname=NULL, height=NA, width=NA, 
 				compute.dim=TRUE, dev ="png", extra="", annot.clust.method="umilds"){
 				
 	graph.name <- NULL
@@ -5023,13 +5025,13 @@ central.plot.one <- function(genes.annot=NULL, clusters=NULL, taxoname=NULL, hei
 
 #############################################################################################
 #
-# 18. Function clusters.plot() -> Experimental: plots functional clusters as back-to-back bar plots (up and down-regulated themes)
+# 18. Function .clusters.plot() -> Experimental: plots functional clusters as back-to-back bar plots (up and down-regulated themes)
 #
 #############################################################################################
 
 # experimental!!!
 
-clusters.plot <- function(up.annot=NULL, down.annot=NULL, clusters=NULL, taxoname=NULL, height=700, width=900, 
+.clusters.plot <- function(up.annot=NULL, down.annot=NULL, clusters=NULL, taxoname=NULL, height=700, width=900, 
 				dev ="jpeg", extra=""){
 
 	if(!is.null(down.annot) & !is.null(clusters) & !is.null(up.annot)){
@@ -5242,13 +5244,13 @@ clusters.plot <- function(up.annot=NULL, down.annot=NULL, clusters=NULL, taxonam
 
 #############################################################################################
 #
-# 18. Function pvalues() -> Calculate the p-value for each annotating term using an exact Fisher test
+# 18. Function .pvalues() -> Calculate the p-value for each annotating term using an exact Fisher test
 #
 #############################################################################################
 
 #Array DATAS contains all the data necessary to build the contingency table for calculating the Fisher test
 
-pvalues <- function(datas){
+.pvalues <- function(datas){
 	a <- as.matrix(datas[,1])
 	b <- as.matrix(datas[,2]) - as.matrix(datas[,1])
 	cc <- as.matrix(datas[,3]) - as.matrix(datas[,1])
@@ -5276,20 +5278,20 @@ pvalues <- function(datas){
 
 #############################################################################################
 #
-# 19. Function fdr.adjust() -> P-values adjustment using FDR of Benjamini & Hochberg (1995) modified by Paciorek (2004)
+# 19. Function .fdr.adjust() -> P-values adjustment using FDR of Benjamini & Hochberg (1995) modified by Paciorek (2004)
 #
 #############################################################################################
 
 
 
-fdr.adjust <- function(pvalues, qlevel=0.05, method="original", adjust=NULL){	
+.fdr.adjust <- function(.pvalues, qlevel=0.05, method="original", adjust=NULL){	
 
 
-	x.fdr <- fdr(pvals=pvalues,qlevel=qlevel,method=method,adjustment.method=adjust)	 
-	y.fdr <- as.vector(matrix(1,length(pvalues),1))
+	x.fdr <- fdr(pvals=.pvalues,qlevel=qlevel,method=method,adjustment.method=adjust)	 
+	y.fdr <- as.vector(matrix(1,length(.pvalues),1))
 
 	if(!is.null(x.fdr)){
-		for(i in 1:length(x.fdr)){ y.fdr[x.fdr[i]]<-pvalues[x.fdr[i]]}
+		for(i in 1:length(x.fdr)){ y.fdr[x.fdr[i]]<-.pvalues[x.fdr[i]]}
 	}
 
 	return(y.fdr)
@@ -5308,11 +5310,11 @@ fdr.adjust <- function(pvalues, qlevel=0.05, method="original", adjust=NULL){
 
 #############################################################################################
 #
-# 20. Function sil.h() -> Calculate the silhouette for a partition of ucknn clusters (asymetrical distances between objects)
+# 20. Function .sil.h() -> Calculate the silhouette for a partition of ucknn clusters (asymetrical distances between objects)
 #
 #############################################################################################
 
-sil.h <- function(memb, annot.distance){
+.sil.h <- function(memb, annot.distance){
 	
 	clust.list <- list(NULL)
 
@@ -5356,11 +5358,11 @@ sil.h <- function(memb, annot.distance){
 
 #############################################################################################
 #
-# 21. Function annot.citers.rank() -> Calculate the citers rank vector starting from an ensemble of functional annotations (vectors of gene identifiers)
+# 21. Function .annot.citers.rank() -> Calculate the citers rank vector starting from an ensemble of functional annotations (vectors of gene identifiers)
 #
 #############################################################################################
 
-annot.citers.rank <- function(annot.distance, k){
+.annot.citers.rank <- function(annot.distance, k){
 
 	# starting from the matrix of unilateral distances between annotations compute ranks from distances by columns
 	
@@ -5401,11 +5403,11 @@ annot.citers.rank <- function(annot.distance, k){
 
 #############################################################################################
 #
-# 22. Function presumptive.proximity() -> Transforms a symetrical distance matrix into a proximity matrix using a gaussian kernel
+# 22. Function .presumptive.proximity() -> Transforms a symetrical distance matrix into a proximity matrix using a gaussian kernel
 #
 #############################################################################################
 
-presumptive.proximity <- function(annot.distance, sigma=NA){
+.presumptive.proximity <- function(annot.distance, sigma=NA){
 
 	if(is.na(sigma)){
 		sigma <- median(annot.distance[lower.tri(annot.distance,diag=FALSE)])
@@ -5420,11 +5422,11 @@ presumptive.proximity <- function(annot.distance, sigma=NA){
 
 #############################################################################################
 #
-# 22. Function annotation.distance() -> Calculate the distance matrix between an ensemble of functional annotations (vectors of gene identifiers)
+# 22. Function .annotation.distance() -> Calculate the distance matrix between an ensemble of functional annotations (vectors of gene identifiers)
 #
 #############################################################################################
 
-annotation.distance <- function(annot.matrix, coexp.matrix, measure = "unilat.pond.norm.mean"){
+.annotation.distance <- function(annot.matrix, coexp.matrix, measure = "unilat.pond.norm.mean"){
 	
 	# annotations on rows and genes on columns
 	
@@ -5441,7 +5443,7 @@ annotation.distance <- function(annot.matrix, coexp.matrix, measure = "unilat.po
   	
   		for(j in 1:nrow(annot.matrix)){
   			if(j != i){  				
-  				annot.distance[j,i] <- presumptive.distance(annot1 = names(annot.matrix[i,][annot.matrix[i,] == 1]), 
+  				annot.distance[j,i] <- .presumptive.distance(annot1 = names(annot.matrix[i,][annot.matrix[i,] == 1]), 
   						annot2 = names(annot.matrix[j,][annot.matrix[j,] == 1]), coexp.matrix = coexp.matrix, 
   						measure = measure)
   			}  	
@@ -5458,11 +5460,11 @@ annotation.distance <- function(annot.matrix, coexp.matrix, measure = "unilat.po
 
 #############################################################################################
 #
-# 24. Function presumptive.distance() -> Calculate distance between two annotations (vectors of gene identifiers)
+# 24. Function .presumptive.distance() -> Calculate distance between two annotations (vectors of gene identifiers)
 #
 #############################################################################################
 
-presumptive.distance <- function(annot1, annot2, coexp.matrix, measure = "norm.sum"){
+.presumptive.distance <- function(annot1, annot2, coexp.matrix, measure = "norm.sum"){
 
 	distance <- 1	# corresponding to the maximum distance 1 the minimum being 0
 
@@ -5591,11 +5593,11 @@ presumptive.distance <- function(annot1, annot2, coexp.matrix, measure = "norm.s
 
 #############################################################################################
 #
-# 25. Function uc.knn() -> Aglomerative kNN clustering of genomic annotations (ECML 2006)
+# 25. Function .uc.knn() -> Aglomerative kNN clustering of genomic annotations (ECML 2006)
 #
 #############################################################################################
 
-uc.knn <- function(annot.matrix, coexp.matrix, alpha = 0.05, taxoname, annot.prox.measure = "unilat.pond.norm.mean",splits = 10, normal = TRUE, terms.name){
+.uc.knn <- function(annot.matrix, coexp.matrix, alpha = 0.05, taxoname, annot.prox.measure = "unilat.pond.norm.mean",splits = 10, normal = TRUE, terms.name){
   	
   	cat(paste("\n\t",taxoname," annotations UC-KNN clustering started...",sep=""))
  # getting significantly enriched annotations data
@@ -5604,7 +5606,7 @@ uc.knn <- function(annot.matrix, coexp.matrix, alpha = 0.05, taxoname, annot.pro
 	   	 
  # calculate the annotation matrix of citers
     
-  	annot.distance <- annotation.distance(annot.matrix = annot.matrix, coexp.matrix = coexp.matrix, measure = annot.prox.measure)
+  	annot.distance <- .annotation.distance(annot.matrix = annot.matrix, coexp.matrix = coexp.matrix, measure = annot.prox.measure)
 
     	class.same <- 0 # count the cases in which kNN give same result as simple
 	class.differ <- 0 # count the cases in kNN result differs from simple
@@ -5613,7 +5615,7 @@ uc.knn <- function(annot.matrix, coexp.matrix, alpha = 0.05, taxoname, annot.pro
 
   for(k in 1:(ncol(annot.distance)-1)){
   # find the best citers for kNN in ranked order
-  	best.citers <- annot.citers.rank(annot.distance, k = k) # k is the kNN
+  	best.citers <- .annot.citers.rank(annot.distance, k = k) # k is the kNN
   	
   # cluster annotations    
 		
@@ -5693,24 +5695,24 @@ uc.knn <- function(annot.matrix, coexp.matrix, alpha = 0.05, taxoname, annot.pro
  }
   	
   	
-  	sil.hc <- as.vector(NULL)	# vector of silhouettes
+  	.sil.hc <- as.vector(NULL)	# vector of silhouettes
 
   # calculate cluster silhouettes
 	
   	for(i in 2:length(part.list)){ 
     	# cut the tree 
     		memb <- part.list[[i]]
-    		sil <- mean(sil.h(memb, annot.distance))
-    		sil.hc <- c(sil.hc, sil)
+    		sil <- mean(.sil.h(memb, annot.distance))
+    		.sil.hc <- c(.sil.hc, sil)
 
   	}
 	
 
-	names(sil.hc) <- 2:length(part.list)	# choose the max silhouette
-	#cat(sil.hc)
+	names(.sil.hc) <- 2:length(part.list)	# choose the max silhouette
+	#cat(.sil.hc)
 	# find the best partition 
-	sil.hc <- sil.hc[!is.nan(sil.hc)]
-	best.index <- as.numeric(names(sil.hc[sil.hc == max(sil.hc, na.rm=TRUE)]))
+	.sil.hc <- .sil.hc[!is.nan(.sil.hc)]
+	best.index <- as.numeric(names(.sil.hc[.sil.hc == max(.sil.hc, na.rm=TRUE)]))
 	cat(paste("\n\t\t\tBest index values = ",length(best.index),sep=""))
 	
 	optim.clust <- length(unique(part.list[[best.index[1]]]))
@@ -5726,8 +5728,8 @@ uc.knn <- function(annot.matrix, coexp.matrix, alpha = 0.05, taxoname, annot.pro
 	best.partition <- part.list[[best.index[1]]]
 	cluster.length <- as.vector(NULL)
 	best.index <- best.index[1]
-	sil.part <- mean(sil.h(best.partition, annot.distance))
-	sil.cluster <- sil.h(best.partition, annot.distance)
+	sil.part <- mean(.sil.h(best.partition, annot.distance))
+	sil.cluster <- .sil.h(best.partition, annot.distance)
 	
 	id.cluster <- list(NULL)	
 	term.cluster <- list(NULL)
@@ -5813,7 +5815,7 @@ uc.knn <- function(annot.matrix, coexp.matrix, alpha = 0.05, taxoname, annot.pro
 		names(best.partition) <- terms.name[names(best.partition),2]
 		annot.proximity <- 1 - annot.distance
 		
-		clusters <- list(annot.distance=annot.distance, annot.proximity=annot.proximity, sil=sil.hc, sil.part=sil.part,sil.cluster=sil.cluster,
+		clusters <- list(annot.distance=annot.distance, annot.proximity=annot.proximity, sil=.sil.hc, sil.part=sil.part,sil.cluster=sil.cluster,
 					cluster.length=cluster.length,best.index=best.index,id.cluster=id.cluster,term.cluster=term.cluster,
 					terms.name=terms.name, gene.cluster=gene.cluster,best.partition=best.partition,gene.connect=gene.connect)
 		  		
@@ -5878,9 +5880,9 @@ fdr <- function(pvals,qlevel=0.05,method="original",adjustment.method=NULL,adjus
 #
 #   method: method for performing the testing.  'original' follows Benjamini & Hochberg (1995); 'general' is much more conservative, requiring no assumptions on the p-values (see Benjamini & Yekutieli (2001)).  We recommend using 'original', and if desired, using 'adjustment.method="mean" ' to increase power.
 #
-#   adjustment.method: method for increasing the power of the procedure by estimating the proportion of alternative p-values, one of "mean", the modified Storey estimator that we suggest in Ventura et al. (2004), "storey", the method of Storey (2002), or "two-stage", the iterative approach of Benjamini et al. (2001)
+#   adjustment.method: method for increasing the power of the procedure by estimating the proportion of alternative p-values, one of "mean", the modified Storey estimator that we suggest in Ventura et al. (2004), ".storey", the method of Storey (2002), or "two-stage", the iterative approach of Benjamini et al. (2001)
 #
-#   adjustment.args: arguments to adjustment.method; see prop.alt() for description, but note that for "two-stage", qlevel and fdr.method are taken from the qlevel and method arguments to fdr()
+#   adjustment.args: arguments to adjustment.method; see .prop.alt() for description, but note that for "two-stage", qlevel and fdr.method are taken from the qlevel and method arguments to fdr()
 #
 # Value:
 #
@@ -5904,7 +5906,7 @@ fdr <- function(pvals,qlevel=0.05,method="original",adjustment.method=NULL,adjus
       adjustment.args <- list(edf.lower=0.8,num.steps=20)  # default arguments for "mean" method of Ventura et al. (2004)
       cat(paste('Adjusting cutoff using mean method, with edf.lower=0.8 and num.steps=20\n',sep=""))
     }
-    a <- prop.alt(pvals,adjustment.method,adjustment.args)
+    a <- .prop.alt(pvals,adjustment.method,adjustment.args)
   }
   if(a==1){    # all hypotheses are estimated to be alternatives
     return(1:n)
@@ -5912,10 +5914,10 @@ fdr <- function(pvals,qlevel=0.05,method="original",adjustment.method=NULL,adjus
     qlevel <- qlevel/(1-a)
   }
 
-  return(fdr.master(pvals,qlevel,method))
+  return(.fdr.master(pvals,qlevel,method))
 }
 
-fdr.master <- function(pvals,qlevel=0.05,method="original"){
+.fdr.master <- function(pvals,qlevel=0.05,method="original"){
 #
 # Description:
 #
@@ -5941,11 +5943,11 @@ fdr.master <- function(pvals,qlevel=0.05,method="original"){
       stop(paste("No method of type: ",method,sep=""))
     }
   }
-  return(fdr.basic(pvals,qlevel))
+  return(.fdr.basic(pvals,qlevel))
 }
 
 
-fdr.basic <- function(pvals,qlevel=0.05){
+.fdr.basic <- function(pvals,qlevel=0.05){
 #
 # Description:
 #
@@ -5975,7 +5977,7 @@ fdr.basic <- function(pvals,qlevel=0.05){
 }
 
 
-storey <- function(edf.quantile,pvals){
+.storey <- function(edf.quantile,pvals){
 #
 # Description:
 #
@@ -6004,7 +6006,7 @@ storey <- function(edf.quantile,pvals){
 }
 
 
-prop.alt <- function(pvals,adjustment.method="mean",adjustment.args=list(edf.lower=0.8,num.steps=20)){
+.prop.alt <- function(pvals,adjustment.method="mean",adjustment.args=list(edf.lower=0.8,num.steps=20)){
 #
 # Description:
 #
@@ -6014,11 +6016,11 @@ prop.alt <- function(pvals,adjustment.method="mean",adjustment.args=list(edf.low
 #
 #   pvals (required):  a vector of pvals from which to estimate a
 #
-#   adjustment.method: method for  estimating the proportion of alternative p-values, one of "mean", the modified Storey estimator suggested in Ventura et al. (2004); "storey", the method of Storey (2002); or "two-stage", the iterative approach of Benjamini et al. (2001)
+#   adjustment.method: method for  estimating the proportion of alternative p-values, one of "mean", the modified Storey estimator suggested in Ventura et al. (2004); ".storey", the method of Storey (2002); or "two-stage", the iterative approach of Benjamini et al. (2001)
 #
 #   adjustment.args: arguments to adjustment.method;
 #      for "mean", specify edf.lower, the smallest quantile at which to estimate a, and num.steps, the number of quantiles to use - the approach uses the average of the Storey (2002) estimator for the num.steps quantiles starting at edf.lower and finishing just less than 1
-#      for "storey", specify edf.quantile, the quantile at which to calculate the estimator
+#      for ".storey", specify edf.quantile, the quantile at which to calculate the estimator
 #      for "two-stage", the method uses a standard FDR approach to estimate which p-values are significant; this number is the estimate of a; therefore the method requires specification of qlevel, the proportion of false positives and fdr.method ('original' or 'general'), the FDR method to be used.  We do not recommend 'general' as this is very conservative and will underestimate a.
 #  
 # Value:
@@ -6027,21 +6029,21 @@ prop.alt <- function(pvals,adjustment.method="mean",adjustment.args=list(edf.low
 #
 # Examples:
 #
-#   a <- prop.alt(pvals,adjustment.method="mean")
+#   a <- .prop.alt(pvals,adjustment.method="mean")
 #
   n <- length(pvals)
   if(adjustment.method=="two-stage"){
     if(is.null(adjustment.args$qlevel) | is.null(adjustment.args$fdr.method)){
       stop("adjustment.args$qlevel or adjustment.args$fdr.method not specified.  Two-stage estimation of the number of alternative hypotheses requires specification of the FDR threshold and FDR method ('original' or 'general')")
     }
-    return(length(fdr.master(pvals,adjustment.args$qlevel,method=adjustment.args$fdr.method))/n)
+    return(length(.fdr.master(pvals,adjustment.args$qlevel,method=adjustment.args$fdr.method))/n)
   }
 
-  if(adjustment.method=="storey"){
+  if(adjustment.method==".storey"){
     if(is.null(adjustment.args$edf.quantile)){
       stop("adjustment.args$edf.quantile not specified. Using Storey's method for estimating  the number of alternative hypotheses requires specification of the argument of the p-value EDF at which to do the estimation (a number close to one is recommended)")
     }
-    return(storey(adjustment.args$edf.quantile,pvals))
+    return(.storey(adjustment.args$edf.quantile,pvals))
   }
 
   if(adjustment.method=="mean"){
@@ -6056,7 +6058,7 @@ prop.alt <- function(pvals,adjustment.method="mean",adjustment.args=list(edf.low
     }
     stepsize <- (1-adjustment.args$edf.lower)/adjustment.args$num.steps
     edf.quantiles <- matrix(seq(from=adjustment.args$edf.lower,by=stepsize,len=adjustment.args$num.steps),nr=adjustment.args$num.steps,nc=1)
-    a.vec <- apply(edf.quantiles,1,storey,pvals)
+    a.vec <- apply(edf.quantiles,1,.storey,pvals)
     return(mean(a.vec))
   }
 }
@@ -6078,19 +6080,22 @@ prop.alt <- function(pvals,adjustment.method="mean",adjustment.args=list(edf.low
 
 
 # ===================================================
-#For hard thresholding, we use the signum (step) function
-if(exists("signum") ) rm(signum); 
-signum=function(corhelp,tau1)  {
-adjmat1= as.matrix(abs(corhelp)>=tau1)
-dimnames(adjmat1) <- dimnames(corhelp)
-diag(adjmat1) <- 0
-adjmat1}
+#For hard thresholding, we use the .signum (step) function
+if(exists(".signum") ) rm(.signum); 
+.signum=function(corhelp,tau1){
+	adjmat1= as.matrix(abs(corhelp)>=tau1)
+	dimnames(adjmat1) <- dimnames(corhelp)
+	diag(adjmat1) <- 0
+	adjmat1
+}
 
 # ===================================================
-# For soft thresholding, one can use the sigmoid function 
+# For soft thresholding, one can use the .sigmoid function 
 # But we have focused on the power adjacency function in the tutorial...
-if (exists("sigmoid") ) rm(sigmoid); sigmoid=function(ss,mu1=0.8,alpha1=20) {
-1/(1+exp(-alpha1*(ss-mu1)))}
+if (exists(".sigmoid") ) rm(.sigmoid); 
+.sigmoid=function(ss,mu1=0.8,alpha1=20){
+	1/(1+exp(-alpha1*(ss-mu1)))
+}
 
 
 
@@ -6102,32 +6107,34 @@ if (exists("sigmoid") ) rm(sigmoid); sigmoid=function(ss,mu1=0.8,alpha1=20) {
 #The idea is to partition the adjacency matrix into consecutive baches of a given size.
 #In principle, the larger the batch size the faster is the calculation. But smaller batchsizes require #less memory...
 # Input: gene expression data set where *rows* correspond to microarray samples and columns correspond to genes.  
-if (exists("SoftConnectivity") ) rm(SoftConnectivity);
-SoftConnectivity=function(datE, power=6,batchsize=1500) {
-no.genes=dim(datE)[[2]]
-no.samples=dim(datE)[[1]]
-if (no.genes<no.samples | no.genes<10 | no.samples<5 ) {print("Error: Something seems to be wrong. Make sure that the input data frame has genes as rows and array samples as columns. ") } else {
-sum1=function(x) sum(x,na.rm=T)
-k=rep(NA,no.genes)
-ad1 <- NULL
-no.batches=as.integer(no.genes/ batchsize)
-if (no.batches>0) {
-for (i in 1:no.batches) {
-print(paste("batch number = ", i))
-index1=c(1:batchsize)+(i-1)* batchsize
-ad1=abs(cor(datE[,index1], datE,use="p",method="spearman"))^power
-ad1[is.na(ad1)]=0
-k[index1]=apply(ad1,1,sum1)
-} # end of for (i in 1:no.batches
-} # end of if (no.batches>0)...
-if (no.genes-no.batches*batchsize>0 ) {
-restindex=c((no.batches*batchsize+1):no.genes)
-ad1=abs(cor(datE[,restindex], datE,use="p",method="spearman"))^power
-ad1[is.na(ad1)]=0
-k[restindex]=apply(ad1,1,sum1)
-} # end of if
-} # end of else statement
-k
+if (exists(".SoftConnectivity") ) rm(.SoftConnectivity);
+.SoftConnectivity=function(datE, power=6,batchsize=1500) {
+	no.genes=dim(datE)[[2]]
+	no.samples=dim(datE)[[1]]
+	if (no.genes<no.samples | no.genes<10 | no.samples<5 ){
+		print("Error: Something seems to be wrong. Make sure that the input data frame has genes as rows and array samples as columns. ") 
+	} else {
+		sum1=function(x) sum(x,na.rm=T)
+		k=rep(NA,no.genes)
+		ad1 <- NULL
+		no.batches=as.integer(no.genes/ batchsize)
+		if (no.batches>0) {
+			for (i in 1:no.batches) {
+			print(paste("batch number = ", i))
+			index1=c(1:batchsize)+(i-1)* batchsize
+			ad1=abs(cor(datE[,index1], datE,use="p",method="spearman"))^power
+			ad1[is.na(ad1)]=0
+			k[index1]=apply(ad1,1,sum1)
+			} # end of for (i in 1:no.batches
+		} # end of if (no.batches>0)...
+		if (no.genes-no.batches*batchsize>0 ) {
+			restindex=c((no.batches*batchsize+1):no.genes)
+			ad1=abs(cor(datE[,restindex], datE,use="p",method="spearman"))^power
+			ad1[is.na(ad1)]=0
+			k[restindex]=apply(ad1,1,sum1)
+		} # end of if
+	} # end of else statement
+	k
 } # end of function
 
 
@@ -6135,8 +6142,8 @@ k
 
 
 # ===================================================
-# The function PickHardThreshold can help one to estimate the cut-off value 
-# when using the signum (step) function.
+# The function .PickHardThreshold can help one to estimate the cut-off value 
+# when using the .signum (step) function.
 # The first column lists the threshold ("cut"),
 # the second column lists the corresponding p-value based on the Fisher Transform 
 # of the co-expression. 
@@ -6155,8 +6162,8 @@ k
 # no.breaks specifies how many intervals used to estimate the frequency p(k) i.e. the no. of points in the 
 # scale free topology plot.
 
-if (exists("PickHardThreshold")) rm(PickHardThreshold);
-PickHardThreshold <- function(datExpr1,RsquaredCut=0.85, cutvector=seq(0.1,0.9,by=0.05),
+if (exists(".PickHardThreshold")) rm(.PickHardThreshold);
+.PickHardThreshold <- function(datExpr1,RsquaredCut=0.85, cutvector=seq(0.1,0.9,by=0.05),
 				removeFirst=FALSE,no.breaks=10, coexp.method="spearman"){
 	no.genes <- dim(datExpr1)[[2]]
 	no.samples= dim(datExpr1)[[1]]
@@ -6232,13 +6239,13 @@ PickHardThreshold <- function(datExpr1,RsquaredCut=0.85, cutvector=seq(0.1,0.9,b
 
 
 # ===========================================================
-# The function PickSoftThreshold allows one to estimate the power parameter when using
+# The function .PickSoftThreshold allows one to estimate the power parameter when using
 # a soft thresholding approach with the use of the power function AF(s)=s^Power
-# The function PickSoftThreshold allows one to estimate the power parameter when using
+# The function .PickSoftThreshold allows one to estimate the power parameter when using
 # a soft thresholding approach with the use of the power function AF(s)=s^Power
 # The removeFirst option removes the first point (k=1, P(k=1)) from the regression fit.
-if (exists("PickSoftThreshold")) rm(PickSoftThreshold);
-PickSoftThreshold=function(datExpr1,RsquaredCut=0.85, powervector=c(seq(1,10,by=1),seq(12,20,by=2)),
+if (exists(".PickSoftThreshold")) rm(.PickSoftThreshold);
+.PickSoftThreshold=function(datExpr1,RsquaredCut=0.85, powervector=c(seq(1,10,by=1),seq(12,20,by=2)),
 				removeFirst=FALSE,no.breaks=10,coexp.method="spearman") {
 	no.genes <- ncol(datExpr1)
 	no.samples <- nrow(datExpr1)
@@ -6308,13 +6315,13 @@ PickSoftThreshold=function(datExpr1,RsquaredCut=0.85, powervector=c(seq(1,10,by=
 
 
 # ===================================================
-# The function ScaleFreePlot creates a plot for checking scale free topology
+# The function .ScaleFreePlot creates a plot for checking scale free topology
 # when truncated1=T is specificed, it provides the R^2 measures for the following
 # degree distributions: a) scale free topology, b) log-log R^2 and c) truncated exponential R^2
 
-# The function ScaleFreePlot creates a plot for checking scale free topology
-if(exists("ScaleFreePlot")) rm(ScaleFreePlot) ; 
-ScaleFreePlot=function(kk,no.breaks=10,AF1="" ,truncated1=FALSE, removeFirst=FALSE){
+# The function .ScaleFreePlot creates a plot for checking scale free topology
+if(exists(".ScaleFreePlot")) rm(.ScaleFreePlot) ; 
+.ScaleFreePlot=function(kk,no.breaks=10,AF1="" ,truncated1=FALSE, removeFirst=FALSE){
 	cut1=cut(kk,no.breaks)
 	binned.k=tapply(kk,cut1,mean)
 	freq1=tapply(kk,cut1,length)/length(kk)
@@ -6364,11 +6371,11 @@ ScaleFreePlot=function(kk,no.breaks=10,AF1="" ,truncated1=FALSE, removeFirst=FAL
 
 
 # ===================================================
-#The function TOMdist computes a dissimilarity 
+#The function .TOMdist computes a dissimilarity 
 # based on the topological overlap matrix (Ravasz et al)
 # Input: an Adjacency matrix with entries in [0,1]
-if(exists("TOMdist")) rm(TOMdist);
-TOMdist=function(adjmat1, maxADJ=FALSE) {
+if(exists(".TOMdist")) rm(.TOMdist);
+.TOMdist=function(adjmat1, maxADJ=FALSE) {
 	diag(adjmat1)=0;
 	adjmat1[is.na(adjmat1)]=0;
 	maxh1=max(as.dist(adjmat1) ); minh1=min(as.dist(adjmat1) ); 
@@ -6404,8 +6411,8 @@ TOMdist=function(adjmat1, maxADJ=FALSE) {
 # WARNING:  ONLY FOR UNWEIGHTED NETWORKS, i.e. the adjacency matrix contains binary entries...
 # This function is explained in Yip and Horvath (2005)
 # http://www.genetics.ucla.edu/labs/horvath/GTOM/
-if(exists("TOMkdist")) rm(TOMkdist);
-TOMkdist = function(adjmat1,k=1){
+if(exists(".TOMkdist")) rm(.TOMkdist);
+.TOMkdist = function(adjmat1,k=1){
     maxh1=max(as.dist(adjmat1) ); minh1=min(as.dist(adjmat1) );
     if (k!=round(abs(k))) {
         stop("k must be a positive integer!!!", call.=TRUE);}
@@ -6434,13 +6441,13 @@ if (  max(c(as.dist(abs(adjmat1-t(adjmat1)))))>0   ) {print("ERROR: non-symmetri
 
 
 # IGNORE THIS function...
-# The function TOMdistROW computes the TOM distance of a gene (node)
+# The function .TOMdistROW computes the TOM distance of a gene (node)
 # with that of all other genes in the network.
 # WhichRow is an integer that specifies which row of the adjacency matrix
 # corresponds to the gene of interest.
 # Output=vector of TOM distances.
-if (exists("TOMdistROW") ) rm(TOMdistROW) 
-TOMdistROW=function(WhichRow=1, adjmat1, maxADJ=FALSE) {
+if (exists(".TOMdistROW") ) rm(.TOMdistROW) 
+.TOMdistROW=function(WhichRow=1, adjmat1, maxADJ=FALSE) {
 	diag(adjmat1)=0;
 	maxh1=max(as.dist(adjmat1) ); minh1=min(as.dist(adjmat1) ); 
 	if (maxh1>1 | minh1 < 0 ) {print(paste("ERROR: the adjacency matrix contains entries that are larger than 1 or smaller than 0!!!, 
