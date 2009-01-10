@@ -224,7 +224,7 @@
 
 
 	DTterm2term <- read.table(file = FichTerm2term ,na.strings = "",fill=TRUE,colClasses="character",col.names =c(1:5),sep= "\t",header = FALSE, quote = "",comment.char = "")
-	DTterm <- read.table(file = FichTerm ,na.strings = "",fill=TRUE,colClasses="character",col.names =c(1:6),sep= "\t",header = FALSE, quote = "",comment.char = "")
+	DTterm <- read.table(file = FichTerm ,na.strings = "",fill=TRUE,colClasses="character",col.names =c(1:7),sep= "\t",header = FALSE, quote = "",comment.char = "")
 	GO.terms.hierarchy <<- cbind(DTterm[DTterm2term[,4],4],DTterm[ DTterm2term[,3],4])
 
 

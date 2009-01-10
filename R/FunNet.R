@@ -7,7 +7,7 @@
 
 .packageName <- "FunNet"
 
-.funnet.version <- "1.00-5"
+.funnet.version <- "1.00-6"
 
 try(Sys.setlocale("LC_ALL", "en_US.utf8"), silent = TRUE)
 
@@ -1473,7 +1473,7 @@ if(go & annot.method=="specificity"){	# GO annotation on separate ontological le
 			z <- NULL	# vector of significant annotations
 			
 			if(enriched){
-				if(!is.na(fdr)){z <- as.character(y[.fdr.adjust(.pvalues=as.numeric(y[,2]))<=(fdr/100),1])}	# vector with GO terms which are significantly enriched as corected by fdr
+				if(!is.na(fdr)){z <- as.character(y[.fdr.adjust(pvalues=as.numeric(y[,2]))<=(fdr/100),1])}	# vector with GO terms which are significantly enriched as corected by fdr
 				if(is.na(fdr)){z <- as.character(y[as.numeric(y[,2])<=0.05,1])}
 			}else{
 				z <- as.character(y[,1])
@@ -1721,7 +1721,7 @@ if(go & annot.method=="specificity"){	# GO annotation on separate ontological le
 				z <- NULL	# vector of significant annotations
 				
 				if(enriched){
-					if(!is.na(fdr)){z <- as.character(y[.fdr.adjust(.pvalues=as.numeric(y[,2]))<=(fdr/100),1])}	# vector with GO terms which are significantly enriched as corected by fdr
+					if(!is.na(fdr)){z <- as.character(y[.fdr.adjust(pvalues=as.numeric(y[,2]))<=(fdr/100),1])}	# vector with GO terms which are significantly enriched as corected by fdr
 					if(is.na(fdr)){z <- as.character(y[as.numeric(y[,2])<=0.05,1])}
 				}else{
 					z <- y[,1]
@@ -1990,7 +1990,7 @@ if(go & annot.method=="specificity"){	# GO annotation on separate ontological le
 			
 			z <- NULL	# vector of significant annotations
 			
-			if(!is.na(fdr)){z <- as.character(y[.fdr.adjust(.pvalues=as.numeric(y[,2]))<=(fdr/100),1])}	# vector with GO terms which are significantly enriched as corected by fdr
+			if(!is.na(fdr)){z <- as.character(y[.fdr.adjust(pvalues=as.numeric(y[,2]))<=(fdr/100),1])}	# vector with GO terms which are significantly enriched as corected by fdr
 			if(is.na(fdr)){z <- as.character(y[as.numeric(y[,2])<=0.05,1])}
 		
 		
@@ -2291,7 +2291,7 @@ if(go & annot.method=="specificity"){	# GO annotation on separate ontological le
 		z <- NULL
 
 		if(enriched){
-			if(!is.na(fdr)){z <- as.character(y[.fdr.adjust(.pvalues=as.numeric(y[,2]))<=(fdr/100),1])}	# vector with KEGG terms which are significantly enriched as corected by fdr
+			if(!is.na(fdr)){z <- as.character(y[.fdr.adjust(pvalues=as.numeric(y[,2]))<=(fdr/100),1])}	# vector with KEGG terms which are significantly enriched as corected by fdr
 			if(is.na(fdr)){z <- as.character(y[as.numeric(y[,2])<=0.05,1])}
 		}else{
 			z <- as.character(y[,1])
@@ -5284,14 +5284,14 @@ if(is.list(annot.matrix)){
 
 
 
-.fdr.adjust <- function(.pvalues, qlevel=0.05, method="original", adjust=NULL){	
+.fdr.adjust <- function(pvalues, qlevel=0.05, method="original", adjust=NULL){	
 
 
-	x.fdr <- fdr(pvals=.pvalues,qlevel=qlevel,method=method,adjustment.method=adjust)	 
-	y.fdr <- as.vector(matrix(1,length(.pvalues),1))
+	x.fdr <- fdr(pvals=pvalues,qlevel=qlevel,method=method,adjustment.method=adjust)	 
+	y.fdr <- as.vector(matrix(1,length(pvalues),1))
 
 	if(!is.null(x.fdr)){
-		for(i in 1:length(x.fdr)){ y.fdr[x.fdr[i]]<-.pvalues[x.fdr[i]]}
+		for(i in 1:length(x.fdr)){ y.fdr[x.fdr[i]] <- pvalues[x.fdr[i]]}
 	}
 
 	return(y.fdr)
@@ -5880,7 +5880,7 @@ fdr <- function(pvals,qlevel=0.05,method="original",adjustment.method=NULL,adjus
 #
 #   method: method for performing the testing.  'original' follows Benjamini & Hochberg (1995); 'general' is much more conservative, requiring no assumptions on the p-values (see Benjamini & Yekutieli (2001)).  We recommend using 'original', and if desired, using 'adjustment.method="mean" ' to increase power.
 #
-#   adjustment.method: method for increasing the power of the procedure by estimating the proportion of alternative p-values, one of "mean", the modified Storey estimator that we suggest in Ventura et al. (2004), ".storey", the method of Storey (2002), or "two-stage", the iterative approach of Benjamini et al. (2001)
+#   adjustment.method: method for increasing the power of the procedure by estimating the proportion of alternative p-values, one of "mean", the modified Storey estimator that we suggest in Ventura et al. (2004), "storey", the method of Storey (2002), or "two-stage", the iterative approach of Benjamini et al. (2001)
 #
 #   adjustment.args: arguments to adjustment.method; see .prop.alt() for description, but note that for "two-stage", qlevel and fdr.method are taken from the qlevel and method arguments to fdr()
 #
