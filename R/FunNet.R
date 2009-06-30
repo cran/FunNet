@@ -7,7 +7,7 @@
 
 .packageName <- "FunNet"
 
-.funnet.version <- "1.00-6"
+.funnet.version <- "1.00-7"
 
 try(Sys.setlocale("LC_ALL", "en_US.utf8"), silent = TRUE)
 
@@ -18,7 +18,7 @@ try(Sys.setlocale("LC_ALL", "en_US.utf8"), silent = TRUE)
 
 cat(paste("\nThis is FunNet package ",.funnet.version," built and maintained by Corneliu Henegar.\n",
 	"Using Gene Ontology and KEGG annotations updated on ",annot.date,".\n\n",
-	"FunNet(wd='', org=c('HS','MM','RN','SC'), two.lists=TRUE, up.frame=NULL, down.frame=NULL,\n",
+	"FunNet(wd='', org=c('hsa','mmu','rno','sce'), two.lists=TRUE, up.frame=NULL, down.frame=NULL,\n",
 			"\t genes.frame=NULL, restrict=FALSE, ref.list=NULL, logged=TRUE,\n",
 			"\t discriminant=FALSE, go.bp=TRUE, go.cc=TRUE, go.mf=TRUE, kegg=TRUE,\n",
 			"\t annot.method=c('specificity','terminological','decorrelated'),\n",
@@ -27,7 +27,7 @@ cat(paste("\nThis is FunNet package ",.funnet.version," built and maintained by 
 			"\t estimate.th=FALSE, hard.th=NA, soft.th=NA, topological = FALSE, keep.sign=FALSE,\n",
 			"\t level=NA, annot.clust.method=c('umilds','ucknn'), annot.prox.measure=c('dynamical',\n",
 			"\t 'unilat.pond.norm.mean','unilat.norm.sum','norm.sum','pond.norm.mean'),\n",
-			"\t test.recovery=FALSE, test.robust=FALSE, replace.annot=NA,\n", 
+			"\t test.recovery=FALSE, test.robust=FALSE, replace.annot=NA,random.annot=FALSE,\n", 
 			"\t build.gene.net=FALSE, gene.clust.method='hclust', gene.net.details=FALSE,\n",
 			"\t gene.clusters=NA, alpha=0.05, RV=0.90, sigma=NA, keep.rdata=FALSE, zip=TRUE)\n\n",sep=''))
   invisible()
@@ -41,7 +41,7 @@ cat(paste("\nThis is FunNet package ",.funnet.version," built and maintained by 
 #############################################################################################
 
 			
-FunNet <- function(wd="", org="HS", two.lists=TRUE, up.frame=NULL, down.frame=NULL,
+FunNet <- function(wd="", org="hsa", two.lists=TRUE, up.frame=NULL, down.frame=NULL,
 	  		genes.frame=NULL, restrict=FALSE, ref.list=NULL, logged=TRUE,
 	  		discriminant=FALSE, go.bp=TRUE, go.cc=TRUE, go.mf=TRUE, kegg=TRUE,
 			annot.method="specificity", annot.details=TRUE, 
@@ -49,7 +49,7 @@ FunNet <- function(wd="", org="HS", two.lists=TRUE, up.frame=NULL, down.frame=NU
 	  		coexp.matrix=NULL, coexp.method="spearman", estimate.th=FALSE, 
 	  		hard.th=NA, soft.th=NA, topological = FALSE, keep.sign=FALSE, level=NA, 
 	  		annot.clust.method="umilds", annot.prox.measure="unilat.pond.norm.mean",
-	  		test.recovery=FALSE, test.robust=FALSE, replace.annot=NA, 
+	  		test.recovery=FALSE, test.robust=FALSE, replace.annot=NA, random.annot=FALSE,
 	  		build.gene.net=FALSE, gene.clust.method="hclust", gene.net.details=FALSE,
 			gene.clusters=NA, alpha=0.05, RV=0.90, sigma=NA, keep.rdata=FALSE, zip=TRUE){
 
@@ -60,6 +60,12 @@ FunNet <- function(wd="", org="HS", two.lists=TRUE, up.frame=NULL, down.frame=NU
 	# "coexp.method" can take values "spearman", "pearson", "kendall" or "euclid" (which uses a rescaled euclidean distance to compute co-expression)
 	# "annot.method" can take values "specificity", "terminological", or "decorrelated"
 	# "keep.sign" indicate considering separately co- and inverse expression relations among genes
+	
+	# to assure compatibility with previous version of organism parameters
+	if(org == "HS"){org <- "hsa"}
+	if(org == "MM"){org <- "mmu"}
+	if(org == "RN"){org <- "rno"}
+	if(org == "SC"){org <- "sce"}
 
 	# keep the evidence of the parameters
 	
@@ -68,7 +74,7 @@ FunNet <- function(wd="", org="HS", two.lists=TRUE, up.frame=NULL, down.frame=NU
 			two.lists=two.lists, restrict=restrict, go.bp=go.bp, go.cc=go.cc, go.mf=go.mf, kegg=kegg, discriminant=discriminant, 
 			logged=logged, annot.details=annot.details, estimate.th=estimate.th, hard.th=hard.th, soft.th=soft.th, 
 			coexp.method=coexp.method, topological = topological, keep.sign=keep.sign, build.annot.net=build.annot.net, level=level,
-			test.recovery=test.recovery, test.robust=test.robust, replace.annot=replace.annot, build.gene.net=build.gene.net, 
+			test.recovery=test.recovery, test.robust=test.robust, replace.annot=replace.annot, random.annot=random.annot, build.gene.net=build.gene.net, 
 			gene.clust.method=gene.clust.method, gene.clusters=gene.clusters, gene.net.details=gene.net.details, alpha=alpha, 
 			RV=RV, sigma=sigma, keep.rdata=keep.rdata, zip=zip)
 	
@@ -110,15 +116,17 @@ FunNet <- function(wd="", org="HS", two.lists=TRUE, up.frame=NULL, down.frame=NU
 	#locus.name <- NULL
 	#locus.symbol <- NULL
 
-	# EntrezGene ID's	
-	if(org == "HS"){locus.name <- HS.locus.name[,1:2]}
-	if(org == "MM"){locus.name <- MM.locus.name[,1:2]}
-	if(org == "RN"){locus.name <- RN.locus.name[,1:2]}
-	if(org == "SC"){locus.name <- SC.locus.name[,1:2]}
-	if(org == "HS"){locus.symbol <- HS.locus.name[,c(1,3)]}
-	if(org == "MM"){locus.symbol <- MM.locus.name[,c(1,3)]}
-	if(org == "RN"){locus.symbol <- RN.locus.name[,c(1,3)]}
-	if(org == "SC"){locus.symbol <- SC.locus.name[,c(1,3)]}
+	# EntrezGene ID's
+	locus.name <- annot.base[[org]]$locus.name[,1:2]
+	locus.symbol <- annot.base[[org]]$locus.name[,c(1,3)]
+	#if(org == "HS"){locus.name <- HS.locus.name[,1:2]}
+	#if(org == "MM"){locus.name <- MM.locus.name[,1:2]}
+	#if(org == "RN"){locus.name <- RN.locus.name[,1:2]}
+	#if(org == "SC"){locus.name <- SC.locus.name[,1:2]}
+	#if(org == "HS"){locus.symbol <- HS.locus.name[,c(1,3)]}
+	#if(org == "MM"){locus.symbol <- MM.locus.name[,c(1,3)]}
+	#if(org == "RN"){locus.symbol <- RN.locus.name[,c(1,3)]}
+	#if(org == "SC"){locus.symbol <- SC.locus.name[,c(1,3)]}
 	
 	rownames(locus.name) <- locus.name[,1]
 	rownames(locus.symbol) <- locus.symbol[,1]
@@ -271,10 +279,11 @@ FunNet <- function(wd="", org="HS", two.lists=TRUE, up.frame=NULL, down.frame=NU
 		terms.name <- KEGG.terms.name	# KEGG structure
 		rownames(terms.name) <- terms.name[,1]
 		# KEGG annotations file
-		if(org == "HS"){file.annot <- HS.KEGG.file.annot}
-		if(org == "MM"){file.annot <- MM.KEGG.file.annot}
-		if(org == "RN"){file.annot <- RN.KEGG.file.annot}
-		if(org == "SC"){file.annot <- SC.KEGG.file.annot}
+		file.annot <- annot.base[[org]]$KEGG.file.annot
+		#if(org == "HS"){file.annot <- HS.KEGG.file.annot}
+		#if(org == "MM"){file.annot <- MM.KEGG.file.annot}
+		#if(org == "RN"){file.annot <- RN.KEGG.file.annot}
+		#if(org == "SC"){file.annot <- SC.KEGG.file.annot}
 		taxoname <- "KEGG"
 	
 	
@@ -284,14 +293,14 @@ FunNet <- function(wd="", org="HS", two.lists=TRUE, up.frame=NULL, down.frame=NU
 				up.frame=up.frame,down.frame=down.frame,restrict=restrict,ref.list=ref.list,annot.details=annot.details,level=NA,
 				build.annot.net=build.annot.net,test.recovery=test.recovery,test.robust=test.robust,replace.annot=replace.annot,
 				locus.symbol=locus.symbol,annot.prox.measure=annot.prox.measure,coexp.matrix=coexp.matrix,parameter.list=parameter.list,
-				org=org,gene.net.details=gene.net.details,RV=RV,sigma=sigma)
+				org=org,gene.net.details=gene.net.details,RV=RV,sigma=sigma,random.annot=random.annot)
 		}else{
 			.main.loop(file.annot=file.annot,taxoname=taxoname,annot.method=annot.method,terms.name=terms.name,direct=direct,fdr=fdr,
 				go=FALSE,results.dir=results.dir,annot.clust.method=annot.clust.method,alpha=alpha,locus.name=locus.name,
 				genes.frame=genes.frame,restrict=restrict,ref.list=ref.list,annot.details=annot.details,level=NA,build.annot.net=build.annot.net,
 				test.recovery=test.recovery,test.robust=test.robust,replace.annot=replace.annot,locus.symbol=locus.symbol,
 				annot.prox.measure=annot.prox.measure,coexp.matrix=coexp.matrix,parameter.list=parameter.list,org=org,
-				gene.net.details=gene.net.details,RV=RV,sigma=sigma)
+				gene.net.details=gene.net.details,RV=RV,sigma=sigma,random.annot=random.annot)
 		}
 	}
 
@@ -304,10 +313,11 @@ FunNet <- function(wd="", org="HS", two.lists=TRUE, up.frame=NULL, down.frame=NU
 
 	if(go.bp){
 	# GO annotations file BP
-		if(org == "HS"){file.annot <- HS.GO.DIR.BP.file.annot}
-		if(org == "MM"){file.annot <- MM.GO.DIR.BP.file.annot}
-		if(org == "RN"){file.annot <- RN.GO.DIR.BP.file.annot}
-		if(org == "SC"){file.annot <- SC.GO.DIR.BP.file.annot}
+		file.annot <- annot.base[[org]]$GO.DIR.BP.file.annot
+		#if(org == "HS"){file.annot <- HS.GO.DIR.BP.file.annot}
+		#if(org == "MM"){file.annot <- MM.GO.DIR.BP.file.annot}
+		#if(org == "RN"){file.annot <- RN.GO.DIR.BP.file.annot}
+		#if(org == "SC"){file.annot <- SC.GO.DIR.BP.file.annot}
 
 		taxoname <- go.name[1]	# name of the GO branch considered for gene annotations
 
@@ -317,23 +327,24 @@ FunNet <- function(wd="", org="HS", two.lists=TRUE, up.frame=NULL, down.frame=NU
 				up.frame=up.frame,down.frame=down.frame,restrict=restrict,ref.list=ref.list,annot.details=annot.details,level=level,
 				build.annot.net=build.annot.net,test.recovery=test.recovery,test.robust=test.robust,replace.annot=replace.annot,
 				locus.symbol=locus.symbol,annot.prox.measure=annot.prox.measure,coexp.matrix=coexp.matrix,parameter.list=parameter.list,
-				org=org,gene.net.details=gene.net.details,RV=RV,sigma=sigma)
+				org=org,gene.net.details=gene.net.details,RV=RV,sigma=sigma,random.annot=random.annot)
 		}else{
 			.main.loop(file.annot=file.annot,taxoname=taxoname,annot.method=annot.method,terms.name=terms.name,direct=direct,fdr=fdr,
 				go=TRUE,results.dir=results.dir,annot.clust.method=annot.clust.method,alpha=alpha,locus.name=locus.name,
 				genes.frame=genes.frame,restrict=restrict,ref.list=ref.list,annot.details=annot.details,level=level,build.annot.net=build.annot.net,
 				test.recovery=test.recovery,test.robust=test.robust,replace.annot=replace.annot,locus.symbol=locus.symbol,
 				annot.prox.measure=annot.prox.measure,coexp.matrix=coexp.matrix,parameter.list=parameter.list,org=org,
-				gene.net.details=gene.net.details,RV=RV,sigma=sigma)
+				gene.net.details=gene.net.details,RV=RV,sigma=sigma,random.annot=random.annot)
 		}		
 	}
 
 	if(go.cc){
 	# GO annotations file CC
-		if(org == "HS"){file.annot <- HS.GO.DIR.CC.file.annot}
-		if(org == "MM"){file.annot <- MM.GO.DIR.CC.file.annot}
-		if(org == "RN"){file.annot <- RN.GO.DIR.CC.file.annot}
-		if(org == "SC"){file.annot <- SC.GO.DIR.CC.file.annot}
+		file.annot <- annot.base[[org]]$GO.DIR.CC.file.annot
+		#if(org == "HS"){file.annot <- HS.GO.DIR.CC.file.annot}
+		#if(org == "MM"){file.annot <- MM.GO.DIR.CC.file.annot}
+		#if(org == "RN"){file.annot <- RN.GO.DIR.CC.file.annot}
+		#if(org == "SC"){file.annot <- SC.GO.DIR.CC.file.annot}
 
 		taxoname <- go.name[2]	# name of the GO branch considered for gene annotations
 
@@ -343,23 +354,24 @@ FunNet <- function(wd="", org="HS", two.lists=TRUE, up.frame=NULL, down.frame=NU
 				up.frame=up.frame,down.frame=down.frame,restrict=restrict,ref.list=ref.list,annot.details=annot.details,level=level,
 				build.annot.net=build.annot.net,test.recovery=test.recovery,test.robust=test.robust,replace.annot=replace.annot,
 				locus.symbol=locus.symbol,annot.prox.measure=annot.prox.measure,coexp.matrix=coexp.matrix,parameter.list=parameter.list,
-				org=org,gene.net.details=gene.net.details,RV=RV,sigma=sigma)
+				org=org,gene.net.details=gene.net.details,RV=RV,sigma=sigma,random.annot=random.annot)
 		}else{
 			.main.loop(file.annot=file.annot,taxoname=taxoname,annot.method=annot.method,terms.name=terms.name,direct=direct,fdr=fdr,
 				go=TRUE,results.dir=results.dir,annot.clust.method=annot.clust.method,alpha=alpha,locus.name=locus.name,
 				genes.frame=genes.frame,restrict=restrict,ref.list=ref.list,annot.details=annot.details,level=level,build.annot.net=build.annot.net,
 				test.recovery=test.recovery,test.robust=test.robust,replace.annot=replace.annot,locus.symbol=locus.symbol,
 				annot.prox.measure=annot.prox.measure,coexp.matrix=coexp.matrix,parameter.list=parameter.list,org=org,
-				gene.net.details=gene.net.details,RV=RV,sigma=sigma)
+				gene.net.details=gene.net.details,RV=RV,sigma=sigma,random.annot=random.annot)
 		}		
 	}
 
 	if(go.mf){
 	# GO annotations file MF
-		if(org == "HS"){file.annot <- HS.GO.DIR.MF.file.annot}
-		if(org == "MM"){file.annot <- MM.GO.DIR.MF.file.annot}
-		if(org == "RN"){file.annot <- RN.GO.DIR.MF.file.annot}
-		if(org == "SC"){file.annot <- SC.GO.DIR.MF.file.annot}
+		file.annot <- annot.base[[org]]$GO.DIR.MF.file.annot
+		#if(org == "HS"){file.annot <- HS.GO.DIR.MF.file.annot}
+		#if(org == "MM"){file.annot <- MM.GO.DIR.MF.file.annot}
+		#if(org == "RN"){file.annot <- RN.GO.DIR.MF.file.annot}
+		#if(org == "SC"){file.annot <- SC.GO.DIR.MF.file.annot}
 
 		taxoname <- go.name[3]	# name of the GO branch considered for gene annotations
 
@@ -369,14 +381,14 @@ FunNet <- function(wd="", org="HS", two.lists=TRUE, up.frame=NULL, down.frame=NU
 				up.frame=up.frame,down.frame=down.frame,restrict=restrict,ref.list=ref.list,annot.details=annot.details,level=level,
 				build.annot.net=build.annot.net,test.recovery=test.recovery,test.robust=test.robust,replace.annot=replace.annot,
 				locus.symbol=locus.symbol,annot.prox.measure=annot.prox.measure,coexp.matrix=coexp.matrix,parameter.list=parameter.list,
-				org=org,gene.net.details=gene.net.details,RV=RV,sigma=sigma)
+				org=org,gene.net.details=gene.net.details,RV=RV,sigma=sigma,random.annot=random.annot)
 		}else{
 			.main.loop(file.annot=file.annot,taxoname=taxoname,annot.method=annot.method,terms.name=terms.name,direct=direct,fdr=fdr,
 				go=TRUE,results.dir=results.dir,annot.clust.method=annot.clust.method,alpha=alpha,locus.name=locus.name,
 				genes.frame=genes.frame,restrict=restrict,ref.list=ref.list,annot.details=annot.details,level=level,build.annot.net=build.annot.net,
 				test.recovery=test.recovery,test.robust=test.robust,replace.annot=replace.annot,locus.symbol=locus.symbol,
 				annot.prox.measure=annot.prox.measure,coexp.matrix=coexp.matrix,parameter.list=parameter.list,org=org,
-				gene.net.details=gene.net.details,RV=RV,sigma=sigma)
+				gene.net.details=gene.net.details,RV=RV,sigma=sigma,random.annot=random.annot)
 		}		
 	}
 	
@@ -453,9 +465,9 @@ FunNet <- function(wd="", org="HS", two.lists=TRUE, up.frame=NULL, down.frame=NU
 
 	cat(paste("\n\tChecking parameters for inconsistencies... \n",sep=""))	
 
-	if(!(parameter.list$org %in% c("HS","MM","RN","SC"))){
+	if(!(parameter.list$org %in% species[,"name"])){
 		cat(paste("\n\t\tParameter org = '",parameter.list$org,"' is incorrect!\n",sep=""))
-		cat(paste("\n\t\tPossible values: 'HS' | 'MM' | 'RN' | 'SC'\n",sep=""))
+		cat(paste("\n\t\tPossible value: ",paste(species[,"name"]),"\n",sep=""))
 		cat(paste("\n\t\tPlease check again and restart FunNet.\n",sep=""))
 		stop("org")
 	}
@@ -641,6 +653,14 @@ FunNet <- function(wd="", org="HS", two.lists=TRUE, up.frame=NULL, down.frame=NU
 		cat(paste("\n\t\tPlease check again and restart FunNet.\n",sep=""))
 		stop("keep.sign")
 	}
+	
+	if(!is.logical(parameter.list$random.annot)){
+		cat(paste("\n\t\tParameter random.annot = ",parameter.list$keep.sign," is incorrect!\n",sep=""))
+		cat(paste("\n\t\tThis parameter should have a logical value.\n",sep=""))
+		cat(paste("\n\t\tPlease check again and restart FunNet.\n",sep=""))
+		stop("random.annot")
+	}
+
 		
 	if(!is.logical(parameter.list$build.gene.net)){
 		cat(paste("\n\t\tParameter build.gene.net = ",parameter.list$build.gene.net," is incorrect!\n",sep=""))
@@ -741,7 +761,7 @@ FunNet <- function(wd="", org="HS", two.lists=TRUE, up.frame=NULL, down.frame=NU
 .main.loop <- function(file.annot, taxoname, annot.method, terms.name, direct=FALSE, fdr=FALSE,
 			go=FALSE, results.dir, alpha, locus.name, locus.symbol, annot.clust.method,
 			up.frame=NULL, down.frame=NULL, genes.frame=NULL, restrict=NULL, ref.list=NULL, 
-			annot.prox.measure=NULL, annot.details=FALSE, level=NA, 
+			annot.prox.measure=NULL, annot.details=FALSE, level=NA, random.annot=FALSE,
 			build.annot.net=FALSE, test.recovery=FALSE, test.robust=FALSE, 
 			replace.annot=NA, coexp.matrix=NULL, parameter.list, org="HS",
 			gene.net.details=FALSE, RV, sigma){
@@ -869,6 +889,7 @@ if(!is.null(up.frame) & !is.null(down.frame) & is.null(genes.frame)){
 if(build.annot.net & !is.null(annot.matrix)){
 
 	clusters <- NULL
+	proximity <- NULL
 	
 	# dynamic spectral
 	if(annot.clust.method == "umilds"){
@@ -888,12 +909,12 @@ if(build.annot.net & !is.null(annot.matrix)){
 		}else{
 		
 			try(proximity <- .dynamic.proximity(annot.matrix=annot.matrix, adj.matrix=coexp.matrix, RV=RV, 
-					method="sum", annotated.only=TRUE, sigma=sigma))
+					method="sum", annotated.only=TRUE, sigma=sigma,random.annot=random.annot))
 			try(save(proximity,file=paste(getwd(),"/",results.dir,"/",taxoname,"_proximity_matrix.RData",sep=""),compress=T))
 			
 			try(clusters <- .spectral.cluster(annot.proximity=proximity$annot.proximity, terms.name=terms.name, 
 					adj.matrix=coexp.matrix, marker.matrix=proximity$marker.matrix[[length(proximity$marker.matrix)]],					
-					annot.matrix=t(annot.matrix), iter.max=20000))
+					annot.matrix=t(proximity$annot.matrix), iter.max=20000))
 
 			try(save(clusters,parameter.list, file=paste(getwd(),"/",results.dir,"/",taxoname,"_spectral_clusters.RData",sep=""),compress=T))
 		}		
@@ -961,8 +982,8 @@ if(build.annot.net & !is.null(annot.matrix)){
 				up.down <- rbind(matrix(1,nrow(up.frame),1),matrix(0,nrow(down.frame),1))
 				rownames(up.down) <- c(up.frame[,1],down.frame[,1])
 
-				try(centrality <- .genes.centrality(adj.matrix=coexp.matrix,clusters=clusters,taxoname=taxoname,locus.symbol=locus.symbol,
-					results.dir=results.dir))
+				try(centrality <- .genes.centrality(adj.matrix=coexp.matrix,clusters=clusters,proximity=proximity,terms.name=terms.name,
+					taxoname=taxoname,locus.symbol=locus.symbol,results.dir=results.dir,annot.clust.method=annot.clust.method))
 
 				try(write.table(cbind(rownames(clusters$gene.connect),as.vector(locus.symbol[rownames(clusters$gene.connect),2]),
 					as.vector(locus.name[rownames(clusters$gene.connect),2]),up.down,clusters$gene.connect,
@@ -974,7 +995,7 @@ if(build.annot.net & !is.null(annot.matrix)){
 				try(rm(up.down,centrality))
 			}
 			
-			try(rm(clusters))
+			try(rm(clusters,proximity))
 
 		}else if(exists("genes.annot")){
 
@@ -991,8 +1012,8 @@ if(build.annot.net & !is.null(annot.matrix)){
 				annot.clust.method=annot.clust.method))
 
 			if(gene.net.details){
-				try(centrality <- .genes.centrality(adj.matrix=coexp.matrix,clusters=clusters,taxoname=taxoname,locus.symbol=locus.symbol,
-					results.dir=results.dir))
+				try(centrality <- .genes.centrality(adj.matrix=coexp.matrix,clusters=clusters,proximity=proximity,terms.name=terms.name,
+					taxoname=taxoname,locus.symbol=locus.symbol,results.dir=results.dir,annot.clust.method=annot.clust.method))
 
 				try(write.table(cbind(rownames(clusters$gene.connect),as.vector(locus.symbol[rownames(clusters$gene.connect),2]),
 					as.vector(locus.name[rownames(clusters$gene.connect),2]),clusters$gene.connect,
@@ -1003,7 +1024,7 @@ if(build.annot.net & !is.null(annot.matrix)){
 				try(rm(centrality))
 			}
 			
-			try(rm(clusters))
+			try(rm(clusters,proximity))
 					
 		}	
 	}
@@ -1513,6 +1534,11 @@ if(go & annot.method=="specificity"){	# GO annotation on separate ontological le
 	
 					rm(a,b)
 				}
+				
+				#####
+				# 29/06/2009
+				# eliminate unannotated genes from annot.matrix				
+				annot.matrix[[rang]] <- annot.matrix[[rang]][,apply(annot.matrix[[rang]],2,sum)>0]
 
 				w <- x[x %in% lowest.level] # we select current annotations (significant or not) which are on the lowest level
 			
@@ -1765,7 +1791,11 @@ if(go & annot.method=="specificity"){	# GO annotation on separate ontological le
 										pop.hits = length(unique(file.annot[file.annot[,2] == z[j],1])), pop.total = pop.total))
 						
 					}
-	 				#print("ok1")
+	 				
+	 				#####
+					# 29/06/2009
+					# eliminate unannotated genes from annot.matrix									
+					annot.matrix[[i]] <- annot.matrix[[i]][,apply(annot.matrix[[i]],2,sum)>0]
 
 
 					# we transfer the genes to the superior level of GO
@@ -2025,6 +2055,11 @@ if(go & annot.method=="specificity"){	# GO annotation on separate ontological le
 		
 				}
 				
+				#####
+				# 29/06/2009
+				# eliminate unannotated genes	
+				# annot.matrix <- annot.matrix[,apply(annot.matrix,2,sum)>0]
+				
 				annot.rank <- as.vector(matrix(rang,1,length(z)))
 				names(annot.rank) <- z
 				
@@ -2259,6 +2294,11 @@ if(go & annot.method=="specificity"){	# GO annotation on separate ontological le
 	
 	
 	}
+	#####
+	# 29/06/2009
+	# eliminate unannotated genes from annot.matrix
+	annot.matrix <- annot.matrix[,apply(annot.matrix,2,sum)>0]
+
 	
 ####################################################################################################################
 
@@ -2327,7 +2367,11 @@ if(go & annot.method=="specificity"){	# GO annotation on separate ontological le
 
 				
 		}
-						
+		
+		#####
+		# 29/06/2009
+		# eliminate unannotated genes from annot.matrix
+		annot.matrix <- annot.matrix[,apply(annot.matrix,2,sum)>0]				
 				
 	}
 	}	# end if(length(terms.annot)>0)
@@ -2347,10 +2391,11 @@ if(go & annot.method=="specificity"){	# GO annotation on separate ontological le
 #############################################################################################
 
 
-.dynamic.proximity <- function(annot.matrix=NULL, adj.matrix=NULL, RV=0.90, sigma=NA, method="sum", annotated.only=TRUE){
+.dynamic.proximity <- function(annot.matrix=NULL, adj.matrix=NULL, RV=0.90, sigma=NA, method="sum", annotated.only=TRUE, random.annot=FALSE){
 
 	
 	if(!is.null(annot.matrix) & !is.null(adj.matrix)){	# genes on rows, categories (future markers) on columns
+		
 		
 		# we add non annotated transcripts to the annotation matrix
 		
@@ -2361,6 +2406,13 @@ if(go & annot.method=="specificity"){	# GO annotation on separate ontological le
 
 		annot.matrix <- rbind(annot.matrix,n)
 		annot.matrix <- annot.matrix[rownames(adj.matrix),]
+		
+		# random annotation routine for experimental purposes only
+		if(random.annot){
+			for(i in 1:ncol(annot.matrix)){
+				annot.matrix[,i] <- sample(annot.matrix[,i])		
+			}
+		}	
 
 		# initiate the dynamic system
 		steps <- 1
@@ -2774,12 +2826,15 @@ if(go & annot.method=="specificity"){	# GO annotation on separate ontological le
 #
 #############################################################################################
 
-.genes.centrality <- function(adj.matrix,clusters=NULL,taxoname,locus.symbol=NULL,results.dir=NULL,coexp=FALSE){
+.genes.centrality <- function(adj.matrix,clusters=NULL,proximity=NULL,terms.name=NULL,annot.clust.method=NULL,taxoname,locus.symbol=NULL,
+				results.dir=NULL,coexp=FALSE){
 	
 	centrality <- NULL
 	
 
 	if(!is.null(clusters) & !coexp){
+		
+		mtc.centrality <- NULL
 
 		annot.genes <- rownames(clusters$gene.connect)[as.numeric(clusters$gene.connect[,"annotation_module"])>0]
 		connect.genes <- rownames(clusters$gene.connect)[as.numeric(clusters$gene.connect[,"total_net"])>0]
@@ -2814,6 +2869,14 @@ if(go & annot.method=="specificity"){	# GO annotation on separate ontological le
 		centrality[,6] <- betweenness(adj.matrix.modular, gmode="graph", diag=FALSE, cmode="undirected", rescale=TRUE)
 		centrality[,7] <- betweenness(adj.matrix, gmode="graph", diag=FALSE, cmode="undirected", rescale=FALSE)
 		centrality[,8] <- betweenness(adj.matrix, gmode="graph", diag=FALSE, cmode="undirected", rescale=TRUE)
+		
+		if(annot.clust.method == "umilds"){
+			mtc.centrality <- .compute.mtc.centrality(proximity=proximity,clusters=clusters,terms.name=terms.name)
+		}
+		
+		if(!is.null(mtc.centrality)){
+			centrality <- cbind(centrality,mtc.centrality[rownames(centrality),])
+		}
 	
 	}else if(coexp){
 		centrality <- matrix(NA,nrow(adj.matrix),4)
@@ -2828,6 +2891,63 @@ if(go & annot.method=="specificity"){	# GO annotation on separate ontological le
 	
 	
 	return(centrality)
+}
+
+
+# This function will compute the evolution of each gene and each annotating theme through time by using
+# the standard deviation. It takes as a parameter the proximity matrix list and 
+# returns a matrix of standard deviations.
+
+.compute.dynamic.variation <- function(proximity){
+
+	# proximity$steps contains the length of the list proximity$marker.matrix
+	# create a vatiation matrix with the dimensions of a marker.matrix step 
+	variation.matrix<-matrix(NA, nrow(proximity$marker.matrix[[1]]), ncol(proximity$marker.matrix[[1]]))
+	dimnames(variation.matrix) <- dimnames(proximity$marker.matrix[[1]])
+	
+	for(i in 1:nrow(proximity$marker.matrix[[1]])){
+		temps <- NULL
+		for(j in c(1:proximity$steps)){
+			temps <- rbind(temps,proximity$marker.matrix[[j]][i,])
+		}
+		variation.matrix[i,] <- sd(temps,na.rm=TRUE)
+	}
+	return(variation.matrix)
+}
+
+# This function will compute different centrality measures in raport with modules and global network
+
+.compute.mtc.centrality <- function(proximity,clusters,terms.name){
+	
+
+	# Prepare the matrix containing the information about the annotation of the modules
+	annot.module.matrix <- matrix(NA, length(clusters$best.partition), 3)
+	
+	annot.module.matrix[,2] <- names(clusters$best.partition)
+	annot.module.matrix[,1] <- terms.name[,1][match(annot.module.matrix[,2],terms.name[,"Name"])]
+	annot.module.matrix[,3]<- as.vector(clusters$best.partition)
+	
+	varmat <- .compute.dynamic.variation(proximity=proximity)
+	diff.centrality <- as.matrix(apply(varmat,1,function(x) sum(x,na.rm=TRUE)))
+	rownames(diff.centrality)<-rownames(proximity$marker.matrix[[1]])
+	
+	# Here we'll produce a matrix containing different centrality measures
+	centrality.colnames <- "mtc_global"
+	
+	each <- apply(diff.centrality,1,function(x) try(x*100/sum(diff.centrality[,1])))	
+	centrality.colnames <- c(centrality.colnames,"mtc_global_%")
+	diff.centrality<-cbind(diff.centrality,each)
+	
+	for(j in 1:max(as.numeric(annot.module.matrix[,3]))){
+		diff.centrality <- cbind(diff.centrality,apply(varmat[,annot.module.matrix[as.numeric(annot.module.matrix[,3])==j,1]],1,function(x) sum(x,na.rm=TRUE)))
+		diff.centrality <- cbind(diff.centrality,apply(varmat[,annot.module.matrix[as.numeric(annot.module.matrix[,3])==j,1]],1,function(x) sum(x,na.rm=TRUE))
+				*100/diff.centrality[,1])
+		centrality.colnames <- c(centrality.colnames,paste("mtc_module_",j,sep=""),paste("mtc_module_",j,"_%",sep=""))
+	}
+		
+	colnames(diff.centrality) <- centrality.colnames
+	diff.centrality[is.nan(diff.centrality)] <- 0
+	return(diff.centrality)
 }
 
 
@@ -3574,7 +3694,7 @@ if(go & annot.method=="specificity"){	# GO annotation on separate ontological le
 #
 #############################################################################################
 
-.resmat <- function(annot.matrix,print.data,terms.name,taxoname,nom,locus.name,results.dir="html",go=FALSE,bgcolor="blue",org="HS"){
+.resmat <- function(annot.matrix,print.data,terms.name,taxoname,nom,locus.name,results.dir="html",go=FALSE,bgcolor="blue",org="hsa"){
 
 	#	"nom" may be "UP" or "DOWN"
 	#	"bgcolor" indicates the background color for KEGG map objects
@@ -3820,6 +3940,7 @@ if(is.list(annot.matrix)){
 					
 					if(org=="HS"){org<-"hsa"}
 					if(org=="MM"){org<-"mmu"}
+					if(org=="RN"){org<-"rno"}
 					if(org=="SC"){org<-"sce"}
 					kegg.genes <- matrix("",nrow(annot.matrix),1)
 					

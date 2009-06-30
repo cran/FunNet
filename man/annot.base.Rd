@@ -1,5 +1,5 @@
-\name{MM.GO.DIR.BP.file.annot}
-\alias{MM.GO.DIR.BP.file.annot}
+\name{annot.base}
+\alias{annot.base}
 \docType{data}
 \title{Internal routine or variable}
 \description{

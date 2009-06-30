@@ -9,11 +9,10 @@
             terminological or decorrelated annotation.
           }
           \usage{
-          annotations(date.annot = "")
+          annotations(cust.specs=NULL)
           }
           \arguments{
-            \item{date.annot}{allows to specify the GO release to be used for annotations update (see an example below).
-            			It has no effect on KEGG annotations.}
+            \item{cust.specs}{this parameter is experimental at this moment.}
           }
           \details{For details concerning the utilization of the annotations data by the FunNet package please see FunNet help 
           		or man page \code{help(FunNet)}.
@@ -76,9 +75,6 @@
           }
           \examples{
           \dontrun{
-          ## the following example forces the use of a previous GO release 
-          (e.g. October 2007) for updating annotations;
-          KEGG annotations are not affected by this parameter.
-          annotations(date.annot = "200710")
+          annotations()
           }}
           \keyword{cluster}

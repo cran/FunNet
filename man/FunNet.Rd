@@ -20,7 +20,7 @@
             and genomic themes.
           }
           \usage{
-          FunNet(wd="", org="HS", two.lists=TRUE, up.frame=NULL, down.frame=NULL,
+          FunNet(wd="", org="hsa", two.lists=TRUE, up.frame=NULL, down.frame=NULL,
 	  	genes.frame=NULL, restrict=FALSE, ref.list=NULL, logged=TRUE,
 	  	discriminant=FALSE, go.bp=TRUE, go.cc=TRUE, go.mf=TRUE, kegg=TRUE,
 	  	annot.method="specificity", annot.details=TRUE, 
@@ -28,7 +28,7 @@
 	  	coexp.matrix=NULL, coexp.method="spearman", estimate.th=FALSE, 
 	  	hard.th=NA, soft.th=NA, topological = FALSE, keep.sign=FALSE, level=NA, 
 	  	annot.clust.method="umilds", annot.prox.measure="unilat.pond.norm.mean",
-	  	test.recovery=FALSE, test.robust=FALSE, replace.annot=NA, 
+	  	test.recovery=FALSE, test.robust=FALSE, replace.annot=NA, random.annot=FALSE,
 	  	build.gene.net=FALSE, gene.clust.method="hclust", gene.net.details=FALSE,
 	  	gene.clusters=NA, alpha=0.05, RV=0.90, sigma=NA, keep.rdata=FALSE, zip=TRUE)
           }
@@ -36,9 +36,9 @@
             \item{wd}{sets the working directory where the expression data files are to be found and 
             		where results are to be stored.}
             \item{org}{indicates the biological species to which analyzable transcript expression data is related; 
-            		currently only three possibilities are available with FunNet: "HS" for human expression data,
-            		"MM" for mouse (Mus Musculus) expression data, "RN" for rat (Rattus nNrvegicus) expression data,
-            		and "SC" for yeast (Saccharomyces Cerevisiae) expression data. Default value is "HS".}
+            		currently only three possibilities are available with FunNet: "hsa" for human expression data,
+            		"mmu" for mouse (Mus Musculus) expression data, "rna" for rat (Rattus Norvegicus) expression data,
+            		and "sce" for yeast (Saccharomyces Cerevisiae) expression data. Default value is "hsa".}
             \item{up.frame}{a dataframe containing expression data for up-regulated genes for the case where two lists 
             		of genes are analyzed comparatively (i.e. up- vs. down-regulated genes). The first column should 
             		contain the GeneID's of the analyzed genes (text data), while the other columns should provide expression 
@@ -147,6 +147,8 @@
             		FALSE.}
             \item{replace.annot}{this parameter is purely experimental and therefore it should not be modified. The default value is 
             		NA.}
+            \item{random.annot}{this parameter is purely experimental and therefore it should not be modified. The default value is 
+            		FALSE.}
             \item{build.gene.net}{indicates whether a simple gene co-expression network should be computed. If TRUE the results
             		of this computation does not take into account functional assignment of analyzed genes. The default value 
             		is FALSE.}
@@ -257,7 +259,7 @@
 	  	coexp.matrix=NULL, coexp.method="spearman", estimate.th=FALSE, 
 	  	hard.th=0.8, soft.th=NA, topological = FALSE, keep.sign=FALSE, level=1, 
 	  	annot.clust.method="umilds", annot.prox.measure="dynamical",
-	  	test.recovery=FALSE, test.robust=FALSE, replace.annot=NA, 
+	  	test.recovery=FALSE, test.robust=FALSE, replace.annot=NA, random.annot=FALSE,
 	  	build.gene.net=TRUE, gene.clust.method="hclust", gene.net.details=TRUE,
 	  	gene.clusters=NA, alpha=0.05, RV=0.90, sigma=NA, keep.rdata=FALSE, zip=TRUE)                   
           }}
