@@ -7,7 +7,7 @@
 
 .packageName <- "FunNet"
 
-.funnet.version <- "1.00-7"
+.funnet.version <- "1.00-8"
 
 try(Sys.setlocale("LC_ALL", "en_US.utf8"), silent = TRUE)
 
@@ -18,10 +18,10 @@ try(Sys.setlocale("LC_ALL", "en_US.utf8"), silent = TRUE)
 
 cat(paste("\nThis is FunNet package ",.funnet.version," built and maintained by Corneliu Henegar.\n",
 	"Using Gene Ontology and KEGG annotations updated on ",annot.date,".\n\n",
-	"FunNet(wd='', org=c('hsa','mmu','rno','sce'), two.lists=TRUE, up.frame=NULL, down.frame=NULL,\n",
-			"\t genes.frame=NULL, restrict=FALSE, ref.list=NULL, logged=TRUE,\n",
-			"\t discriminant=FALSE, go.bp=TRUE, go.cc=TRUE, go.mf=TRUE, kegg=TRUE,\n",
-			"\t annot.method=c('specificity','terminological','decorrelated'),\n",
+	"FunNet(wd='', org=c('hsa','mmu','rno','sce','gga'), two.lists=TRUE, up.frame=NULL,\n",
+			"\t genes.frame=NULL, restrict=FALSE, ref.list=NULL, logged=FALSE,\n",
+			"\t down.frame=NULL, discriminant=FALSE, go.bp=TRUE, go.cc=TRUE, go.mf=TRUE,\n",
+			"\t kegg=TRUE, annot.method=c('specificity','terminological','decorrelated'),\n",
 			"\t annot.details=TRUE, direct=FALSE, enriched=TRUE, fdr=5, build.annot.net=TRUE,\n",
 			"\t coexp.matrix=NULL, coexp.method=c('spearman','pearson','kendall','euclid'),\n",
 			"\t estimate.th=FALSE, hard.th=NA, soft.th=NA, topological = FALSE, keep.sign=FALSE,\n",
@@ -42,7 +42,7 @@ cat(paste("\nThis is FunNet package ",.funnet.version," built and maintained by 
 
 			
 FunNet <- function(wd="", org="hsa", two.lists=TRUE, up.frame=NULL, down.frame=NULL,
-	  		genes.frame=NULL, restrict=FALSE, ref.list=NULL, logged=TRUE,
+	  		genes.frame=NULL, restrict=FALSE, ref.list=NULL, logged=FALSE,
 	  		discriminant=FALSE, go.bp=TRUE, go.cc=TRUE, go.mf=TRUE, kegg=TRUE,
 			annot.method="specificity", annot.details=TRUE, 
 	  		direct=FALSE, enriched=TRUE, fdr=NA, build.annot.net=TRUE,
@@ -987,7 +987,7 @@ if(build.annot.net & !is.null(annot.matrix)){
 
 				try(write.table(cbind(rownames(clusters$gene.connect),as.vector(locus.symbol[rownames(clusters$gene.connect),2]),
 					as.vector(locus.name[rownames(clusters$gene.connect),2]),up.down,clusters$gene.connect,
-					centrality[rownames(clusters$gene.connect),]),
+					centrality[rownames(clusters$gene.connect),]),quote=FALSE,
 					file=paste(getwd(),"/",results.dir,"/",taxoname,"_genes_net_info.txt",sep=""),
 					sep="\t",col.names=c("geneid","symbol","name","up(1)_down(0)",colnames(clusters$gene.connect),colnames(centrality)),
 					row.names=F))
@@ -1017,7 +1017,7 @@ if(build.annot.net & !is.null(annot.matrix)){
 
 				try(write.table(cbind(rownames(clusters$gene.connect),as.vector(locus.symbol[rownames(clusters$gene.connect),2]),
 					as.vector(locus.name[rownames(clusters$gene.connect),2]),clusters$gene.connect,
-					centrality[rownames(clusters$gene.connect),]),
+					centrality[rownames(clusters$gene.connect),]),quote=FALSE,
 					file=paste(getwd(),"/",results.dir,"/",taxoname,"_genes_net_info.txt",sep=""),
 					sep="\t",col.names=c("geneid","symbol","name",colnames(clusters$gene.connect),colnames(centrality)),
 					row.names=F))
@@ -1537,8 +1537,16 @@ if(go & annot.method=="specificity"){	# GO annotation on separate ontological le
 				
 				#####
 				# 29/06/2009
-				# eliminate unannotated genes from annot.matrix				
-				annot.matrix[[rang]] <- annot.matrix[[rang]][,apply(annot.matrix[[rang]],2,sum)>0]
+				# eliminate unannotated genes from annot.matrix
+				if(nrow(annot.matrix[[rang]])>1){
+					annot.matrix[[rang]] <- annot.matrix[[rang]][,apply(annot.matrix[[rang]],2,sum)>0]
+				}else{
+					nom.ligne <- rownames(annot.matrix[[rang]])
+					annot.matrix[[rang]] <- annot.matrix[[rang]][,apply(annot.matrix[[rang]],2,sum)>0]
+					annot.matrix[[rang]] <- t(as.matrix(annot.matrix[[rang]]))
+					rownames(annot.matrix[[rang]]) <- nom.ligne
+					rm(nom.ligne)					
+				}
 
 				w <- x[x %in% lowest.level] # we select current annotations (significant or not) which are on the lowest level
 			
@@ -1795,7 +1803,15 @@ if(go & annot.method=="specificity"){	# GO annotation on separate ontological le
 	 				#####
 					# 29/06/2009
 					# eliminate unannotated genes from annot.matrix									
-					annot.matrix[[i]] <- annot.matrix[[i]][,apply(annot.matrix[[i]],2,sum)>0]
+					if(nrow(annot.matrix[[rang]])>1){
+						annot.matrix[[rang]] <- annot.matrix[[rang]][,apply(annot.matrix[[rang]],2,sum)>0]
+					}else{
+						nom.ligne <- rownames(annot.matrix[[rang]])
+						annot.matrix[[rang]] <- annot.matrix[[rang]][,apply(annot.matrix[[rang]],2,sum)>0]
+						annot.matrix[[rang]] <- t(as.matrix(annot.matrix[[rang]]))
+						rownames(annot.matrix[[rang]]) <- nom.ligne
+						rm(nom.ligne)					
+					}
 
 
 					# we transfer the genes to the superior level of GO
@@ -2371,7 +2387,15 @@ if(go & annot.method=="specificity"){	# GO annotation on separate ontological le
 		#####
 		# 29/06/2009
 		# eliminate unannotated genes from annot.matrix
-		annot.matrix <- annot.matrix[,apply(annot.matrix,2,sum)>0]				
+		if(nrow(annot.matrix)>1){
+			annot.matrix <- annot.matrix[,apply(annot.matrix,2,sum)>0]
+		}else{
+			nom.ligne <- rownames(annot.matrix)
+			annot.matrix <- annot.matrix[,apply(annot.matrix,2,sum)>0]
+			annot.matrix <- t(as.matrix(annot.matrix))
+			rownames(annot.matrix) <- nom.ligne
+			rm(nom.ligne)					
+		}
 				
 	}
 	}	# end if(length(terms.annot)>0)
@@ -2826,15 +2850,13 @@ if(go & annot.method=="specificity"){	# GO annotation on separate ontological le
 #
 #############################################################################################
 
-.genes.centrality <- function(adj.matrix,clusters=NULL,proximity=NULL,terms.name=NULL,annot.clust.method=NULL,taxoname,locus.symbol=NULL,
-				results.dir=NULL,coexp=FALSE){
+.genes.centrality <- function(adj.matrix,clusters=NULL,proximity=NULL,terms.name=NULL,annot.clust.method=NULL,taxoname,locus.symbol=NULL, results.dir=NULL,coexp=FALSE){
 	
 	centrality <- NULL
-	
 
 	if(!is.null(clusters) & !coexp){
 		
-		mtc.centrality <- NULL
+		ac.centrality <- NULL
 
 		annot.genes <- rownames(clusters$gene.connect)[as.numeric(clusters$gene.connect[,"annotation_module"])>0]
 		connect.genes <- rownames(clusters$gene.connect)[as.numeric(clusters$gene.connect[,"total_net"])>0]
@@ -2871,11 +2893,11 @@ if(go & annot.method=="specificity"){	# GO annotation on separate ontological le
 		centrality[,8] <- betweenness(adj.matrix, gmode="graph", diag=FALSE, cmode="undirected", rescale=TRUE)
 		
 		if(annot.clust.method == "umilds"){
-			mtc.centrality <- .compute.mtc.centrality(proximity=proximity,clusters=clusters,terms.name=terms.name)
+			ac <- .compute.annotation.centrality(proximity=proximity,clusters=clusters,terms.name=terms.name)
 		}
 		
-		if(!is.null(mtc.centrality)){
-			centrality <- cbind(centrality,mtc.centrality[rownames(centrality),])
+		if(!is.null(ac)){
+			centrality <- cbind(centrality,ac[rownames(centrality),])
 		}
 	
 	}else if(coexp){
@@ -2889,60 +2911,85 @@ if(go & annot.method=="specificity"){	# GO annotation on separate ontological le
 		centrality[,4] <- betweenness(adj.matrix, gmode="graph", diag=FALSE, cmode="undirected", rescale=TRUE)
 	}
 	
-	
 	return(centrality)
 }
 
 
-# This function will compute the evolution of each gene and each annotating theme through time by using
-# the standard deviation. It takes as a parameter the proximity matrix list and 
-# returns a matrix of standard deviations.
-
-.compute.dynamic.variation <- function(proximity){
-
-	# proximity$steps contains the length of the list proximity$marker.matrix
-	# create a vatiation matrix with the dimensions of a marker.matrix step 
-	variation.matrix<-matrix(NA, nrow(proximity$marker.matrix[[1]]), ncol(proximity$marker.matrix[[1]]))
-	dimnames(variation.matrix) <- dimnames(proximity$marker.matrix[[1]])
-	
-	for(i in 1:nrow(proximity$marker.matrix[[1]])){
-		temps <- NULL
-		for(j in c(1:proximity$steps)){
-			temps <- rbind(temps,proximity$marker.matrix[[j]][i,])
-		}
-		variation.matrix[i,] <- sd(temps,na.rm=TRUE)
+# This function computes the global distances between the annotation steps. Distance = 1-coinertia(mt,mt+1)
+# library(ade4) is needed
+# theme.mask serves to compute the same thing but for a sub-selection of annotations i.e. for a given module.
+.compute.global.distances<-function(marker.matrix,steps,theme.mask){
+	dist.vect<-rep(NA,steps-1)
+	for (i in c(1:(steps-1))){
+		dudi1 <- dudi.pca(as.matrix(marker.matrix[[i]][,match(theme.mask,colnames(marker.matrix[[i]]))]), 
+			scale = TRUE, scan = FALSE)
+		dudi2 <- dudi.pca(as.matrix(marker.matrix[[i+1]][,match(theme.mask,colnames(marker.matrix[[i+1]]))]), 
+			scale = TRUE, scan = FALSE)
+		coin <- coinertia(dudi1,dudi2, scan = FALSE, nf = 2)
+		dist.vect[i]<-(1-coin$RV)
 	}
-	return(variation.matrix)
+	return(dist.vect)
 }
+
+
+# This function computes for each transcript the distances between the annotation steps. Distance = euclidean
+.compute.transcript.distances<-function(marker.matrix,steps,theme.mask){
+	dist.mat<-matrix(NA,nrow=nrow(marker.matrix[[1]]),ncol=steps-1)
+	for (j in c(1:nrow(dist.mat))){
+		for (i in c(1:ncol(dist.mat))){
+			dist.mat[j,i]<-as.numeric(dist(rbind(marker.matrix[[i]][j,match(theme.mask,colnames(marker.matrix[[i+1]]))],
+				marker.matrix[[i+1]][j,match(theme.mask,colnames(marker.matrix[[i+1]]))]),method="euclidean"))
+		}
+	}
+	return(dist.mat)
+}
+
 
 # This function will compute different centrality measures in raport with modules and global network
 
-.compute.mtc.centrality <- function(proximity,clusters,terms.name){
+.compute.annotation.centrality <- function(proximity,clusters,terms.name){
 	
-
 	# Prepare the matrix containing the information about the annotation of the modules
 	annot.module.matrix <- matrix(NA, length(clusters$best.partition), 3)
 	
 	annot.module.matrix[,2] <- names(clusters$best.partition)
 	annot.module.matrix[,1] <- terms.name[,1][match(annot.module.matrix[,2],terms.name[,"Name"])]
-	annot.module.matrix[,3]<- as.vector(clusters$best.partition)
+	annot.module.matrix[,3] <- as.vector(clusters$best.partition)
 	
-	varmat <- .compute.dynamic.variation(proximity=proximity)
-	diff.centrality <- as.matrix(apply(varmat,1,function(x) sum(x,na.rm=TRUE)))
+	dist.global <- .compute.global.distances(proximity$marker.matrix, proximity$steps, colnames(proximity$marker.matrix[[1]]))
+	dist.transcript <- .compute.transcript.distances(proximity$marker.matrix, proximity$steps, colnames(proximity$marker.matrix[[1]]))
+	
+	dist.transcript.global<-matrix(NA,nrow=nrow(dist.transcript),ncol=ncol(dist.transcript))
+	for(k in c(1:(proximity$steps-1))){
+		dist.transcript.global[,k]<-dist.transcript[,k]*dist.global[k]
+	}
+
+	diff.centrality <- as.matrix(apply(dist.transcript.global,1,function(x) sum(x,na.rm=TRUE)))
 	rownames(diff.centrality)<-rownames(proximity$marker.matrix[[1]])
 	
-	# Here we'll produce a matrix containing different centrality measures
-	centrality.colnames <- "mtc_global"
+	# Here we'll produce a matrix containing the different annotation centrality measures
+	centrality.colnames <- "total_ac"
 	
-	each <- apply(diff.centrality,1,function(x) try(x*100/sum(diff.centrality[,1])))	
-	centrality.colnames <- c(centrality.colnames,"mtc_global_%")
+	# We scale the vector so that its sum is 1
+	each <- apply(diff.centrality,1,function(x) try(x/sum(diff.centrality[,1])))	
+	centrality.colnames <- c(centrality.colnames,"scaled_total_ac")
 	diff.centrality<-cbind(diff.centrality,each)
 	
 	for(j in 1:max(as.numeric(annot.module.matrix[,3]))){
-		diff.centrality <- cbind(diff.centrality,apply(varmat[,annot.module.matrix[as.numeric(annot.module.matrix[,3])==j,1]],1,function(x) sum(x,na.rm=TRUE)))
-		diff.centrality <- cbind(diff.centrality,apply(varmat[,annot.module.matrix[as.numeric(annot.module.matrix[,3])==j,1]],1,function(x) sum(x,na.rm=TRUE))
-				*100/diff.centrality[,1])
-		centrality.colnames <- c(centrality.colnames,paste("mtc_module_",j,sep=""),paste("mtc_module_",j,"_%",sep=""))
+		dist.global.module <- .compute.global.distances(proximity$marker.matrix, proximity$steps, annot.module.matrix[as.numeric(annot.module.matrix[,3])==j,1])
+		dist.transcript.module <- .compute.transcript.distances(proximity$marker.matrix, proximity$steps, annot.module.matrix[as.numeric(annot.module.matrix[,3])==j,1])
+	
+		dist.transcript.global.module<-matrix(NA,nrow=nrow(dist.transcript.module),ncol=ncol(dist.transcript.module))
+		for(k in c(1:(proximity$steps-1))){
+			dist.transcript.global.module[,k]<-dist.transcript.module[,k]*dist.global.module[k]
+		}
+	
+		centrality.module <- as.matrix(apply(dist.transcript.global.module,1,function(x) sum(x,na.rm=TRUE)))
+		# We scale the vector so that its sum is 1
+		centrality.module.scaled <- apply(centrality.module,1,function(x) try(x/sum(centrality.module[,1])))
+		diff.centrality<-cbind(diff.centrality,centrality.module,centrality.module.scaled)
+		
+		centrality.colnames <- c(centrality.colnames,paste("modular_ac_",j,sep=""),paste("scaled_modular_ac_",j,sep=""))
 	}
 		
 	colnames(diff.centrality) <- centrality.colnames
@@ -3480,20 +3527,20 @@ if(go & annot.method=="specificity"){	# GO annotation on separate ontological le
 		centrality[,"degree"] <- degree(adj.matrix, gmode="graph", diag=FALSE, rescale=FALSE)
 		centrality[,"scaled_degree"] <- degree(adj.matrix, gmode="graph", diag=FALSE, rescale=TRUE)
 		centrality[,"betweenness"] <- betweenness(adj.matrix, gmode="graph", diag=FALSE, cmode="undirected", rescale=FALSE)
-		centrality[,"scaled_betweenness"] <- betweenness(adj.matrix, gmode="graph", diag=FALSE, cmode="undirected", rescale=TRUE)
+		centrality[,"scaled_betweenness"] <- betweenness(adj.matrix, gmode="graph", diag=FALSE, cmode="undirected", rescale=TRUE)/100
 	}else if(annot.clust.method=="ucknn"){
 		centrality[,"degree"] <- degree(adj.matrix, gmode="digraph", diag=FALSE, rescale=FALSE)
 		centrality[,"scaled_degree"] <- degree(adj.matrix, gmode="digraph", diag=FALSE, rescale=TRUE)
 		centrality[,"betweenness"] <- betweenness(adj.matrix, gmode="digraph", diag=FALSE, cmode="directed", rescale=FALSE)
-		centrality[,"scaled_betweenness"] <- betweenness(adj.matrix, gmode="digraph", diag=FALSE, cmode="directed", rescale=TRUE)
+		centrality[,"scaled_betweenness"] <- betweenness(adj.matrix, gmode="digraph", diag=FALSE, cmode="directed", rescale=TRUE)/100
 	}
 	
 	
 	centrality[,"scaled_betweenness"][is.na(centrality[,"scaled_betweenness"])] <- 0
-	centrality[,"scaled_betweenness"][centrality[,"scaled_betweenness"] == 0] <- (100 - sum(centrality[,"scaled_betweenness"]))/length(centrality[,"scaled_betweenness"][centrality[,"scaled_betweenness"] == 0])
+	centrality[,"scaled_betweenness"][centrality[,"scaled_betweenness"] == 0] <- (1 - sum(centrality[,"scaled_betweenness"]))/length(centrality[,"scaled_betweenness"][centrality[,"scaled_betweenness"] == 0])
 	
 	annot.info <- data.frame(rownames(centrality),clusters$best.partition[rownames(centrality)],up.down[rownames(centrality)],centrality)
-	write.table(annot.info,file=file.net.info,col.names=c("name","module","up(1)_down(0)",colnames(centrality)),row.names=F,sep="\t")
+	write.table(annot.info,file=file.net.info,col.names=c("name","module","up(1)_down(0)",colnames(centrality)),row.names=F,sep="\t",quote=FALSE)
 	
 	
 	cat(paste("The median proximity among annotations is: ",median(clusters$annot.proximity),"\n",sep=""),file=file.param,append=TRUE)
@@ -3540,19 +3587,19 @@ if(go & annot.method=="specificity"){	# GO annotation on separate ontological le
 		centrality[,"degree"] <- degree(adj.matrix, gmode="graph", diag=FALSE, rescale=FALSE)
 		centrality[,"scaled_degree"] <- degree(adj.matrix, gmode="graph", diag=FALSE, rescale=TRUE)
 		centrality[,"betweenness"] <- betweenness(adj.matrix, gmode="graph", diag=FALSE, cmode="undirected", rescale=FALSE)
-		centrality[,"scaled_betweenness"] <- betweenness(adj.matrix, gmode="graph", diag=FALSE, cmode="undirected", rescale=TRUE)
+		centrality[,"scaled_betweenness"] <- betweenness(adj.matrix, gmode="graph", diag=FALSE, cmode="undirected", rescale=TRUE)/100
 	}else if(annot.clust.method=="ucknn"){
 		centrality[,"degree"] <- degree(adj.matrix, gmode="digraph", diag=FALSE, rescale=FALSE)
 		centrality[,"scaled_degree"] <- degree(adj.matrix, gmode="digraph", diag=FALSE, rescale=TRUE)
 		centrality[,"betweenness"] <- betweenness(adj.matrix, gmode="digraph", diag=FALSE, cmode="directed", rescale=FALSE)
-		centrality[,"scaled_betweenness"] <- betweenness(adj.matrix, gmode="digraph", diag=FALSE, cmode="directed", rescale=TRUE)
+		centrality[,"scaled_betweenness"] <- betweenness(adj.matrix, gmode="digraph", diag=FALSE, cmode="directed", rescale=TRUE)/100
 	}
 	
 	centrality[,"scaled_betweenness"][is.na(centrality[,"scaled_betweenness"])] <- 0
-	centrality[,"scaled_betweenness"][centrality[,"scaled_betweenness"] == 0] <- (100 - sum(centrality[,"scaled_betweenness"]))/length(centrality[,"scaled_betweenness"][centrality[,"scaled_betweenness"] == 0])
+	centrality[,"scaled_betweenness"][centrality[,"scaled_betweenness"] == 0] <- (1 - sum(centrality[,"scaled_betweenness"]))/length(centrality[,"scaled_betweenness"][centrality[,"scaled_betweenness"] == 0])
 			
 	annot.info <- data.frame(rownames(centrality),clusters$best.partition[rownames(centrality)],centrality)
-	write.table(annot.info,file=file.net.info,col.names=c("name","module",colnames(centrality)),row.names=F,sep="\t")
+	write.table(annot.info,file=file.net.info,col.names=c("name","module",colnames(centrality)),row.names=F,sep="\t",quote=FALSE)
 	
 	cat(paste("The median proximity among annotations is: ",median(clusters$annot.proximity),"\n",sep=""),file=file.param,append=TRUE)
 	cat(paste("The upper quartile of the proximity among annotations is: ",
@@ -4788,8 +4835,8 @@ if(is.list(annot.matrix)){
 						bar.label.left <- c(bar.label.left,as.character(matrix("",length(right)-length(left),1)))
 					}
 
-					bar.clusters.left[[i]] <- list(valeur=valeur.left,couleur=couleur.left)
-					bar.clusters.right[[i]] <- list(valeur=valeur.right,couleur=couleur.right)			
+					bar.clusters.left[[length(bar.clusters.left)+1]] <- list(valeur=valeur.left,couleur=couleur.left)
+					bar.clusters.right[[length(bar.clusters.right)+1]] <- list(valeur=valeur.right,couleur=couleur.right)			
 					module.label <- c(module.label,as.character(matrix("",max(length(left),length(right)),1)),
 								paste("Module ",i,sep=""))
 				}
@@ -5054,7 +5101,7 @@ if(is.list(annot.matrix)){
 					couleur.right <- c(as.character(matrix("#00000000",bar.nr,1)), couleurs[names(right)])
 					bar.label.right <- c(bar.label.right, "", terms.name[names(right),2])
 
-					bar.clusters.right[[i]] <- list(valeur=valeur.right,couleur=couleur.right)			
+					bar.clusters.right[[length(bar.clusters.right)+1]] <- list(valeur=valeur.right,couleur=couleur.right)			
 					module.label <- c(module.label,as.character(matrix("",length(right),1)),
 								paste("Module ",i,sep=""))
 				}
@@ -6585,3 +6632,469 @@ if (exists(".TOMdistROW") ) rm(.TOMdistROW)
 	}
 }
 
+
+
+###################
+# aditionnal routines
+###################
+
+# general function for spectral clustering
+
+.sclust <- function(data.mat=NULL, iter.max=20000, k=NULL, nstart=10, sigma=NA){
+	
+	
+	clusters <- NULL
+	
+	dist.obj <- as.matrix(dist(t(data.mat), method="euclid"))
+	if(is.na(sigma)){
+		sigma <- median(dist.obj[lower.tri(dist.obj,diag=FALSE)])
+	}
+
+	obj.proximity <- exp(-(dist.obj^2)/(2*(sigma^2)))
+	diag(obj.proximity) <- 0
+			
+	if(!is.null(obj.proximity)){
+		
+				
+		if(ncol(obj.proximity) > 2){
+			
+			diag.matrix <- matrix(0,nrow(obj.proximity),nrow(obj.proximity))
+			dimnames(diag.matrix) <- dimnames(obj.proximity)
+			diag(diag.matrix) <- apply(obj.proximity,1,sum)
+
+			e <- eigen(solve(diag.matrix))
+			V <- e$vectors
+			rownames(V) <- rownames(diag.matrix)
+			sqrt.diag <- V %*% diag(e$values) %*% t(V)
+			
+			l.matrix <- sqrt.diag %*% obj.proximity %*% sqrt.diag
+			rm(e, V, sqrt.diag)
+			
+
+			x.matrix <- eigen(l.matrix)$vectors	
+			rownames(x.matrix) <- rownames(l.matrix)
+			print(eigen(l.matrix,only.values = TRUE)$values)
+			print("First eigenvector:")
+			print(x.matrix[,1])
+			eigen.centrality <- x.matrix[,1]
+
+
+			cluster.tree <- vector("list", ncol(x.matrix)-2)
+			names(cluster.tree) <- as.character(2:(ncol(x.matrix)-1))
+
+
+			for(i in 2:(ncol(x.matrix)-1)){
+
+				k.eigen <- x.matrix[,1:i]	
+				lngth <- apply(k.eigen,1, function(x) sqrt(sum(x*x)))
+				y.matrix <- k.eigen/lngth	
+				y.matrix[is.nan(y.matrix)] <- 0
+				y.matrix[is.na(y.matrix)] <- 0
+				rm(lngth)
+
+				tmp <- kmeans(y.matrix, centers=i, iter.max = iter.max, nstart = nstart, algorithm="Hart")
+				cluster.tree[[i-1]] <- tmp$cluster
+				rm(tmp)
+			}
+
+			sil.k <- as.vector(NULL)	
+			dmatrix <- 1-obj.proximity	
+
+			for(i in 1:length(cluster.tree)){ 
+				# cut the tree 
+				memb <- cluster.tree[[i]]
+				sil <- silhouette(memb, dmatrix=dmatrix)
+				sil.k <- c(sil.k, mean(summary(sil)$clus.avg.width))
+			}
+
+			names(sil.k) <- 2:(ncol(x.matrix)-1)	
+			print(sil.k)
+
+			if(!is.null(k)){
+				best.index <- k
+				print(paste("Best index forced to: ",k,sep=""))
+			}else{
+				if(length(sil.k) > 6){
+					best.index <- as.numeric(names(sil.k[sil.k == max(sil.k[1:6])]))
+				}else{
+					best.index <- as.numeric(names(sil.k[sil.k == max(sil.k)]))
+				}
+				print(paste("Best index: ",best.index,sep=""))		
+			}
+
+
+			if(best.index == 1){
+				best.partition <- as.vector(matrix(1,nrow(x.matrix),1))
+				names(best.partition) <- rownames(x.matrix)
+
+				sil.part <- NULL
+				sil.cluster <- NULL		
+			}else{
+
+				k.eigen <- x.matrix[,1:best.index]
+				lngth <- apply(k.eigen,1, function(x) sqrt(sum(x*x)))
+				y.matrix <- k.eigen/lngth
+				
+				y.matrix[is.nan(y.matrix)] <- 0
+				y.matrix[is.na(y.matrix)] <- 0
+				
+				tmp <- kmeans(y.matrix, centers=best.index[1], iter.max = iter.max, nstart = nstart, algorithm="Hart")
+				print(tmp)
+				rm(tmp,k.eigen,lngth,y.matrix)
+
+				best.partition <- cluster.tree[[best.index-1]]
+
+				sil <- silhouette(best.partition, dmatrix=dmatrix)
+				sil.part <- mean(summary(sil)$clus.avg.width)
+				sil.cluster <- summary(sil)$clus.avg.width
+			}
+
+
+			cluster.length <- as.vector(NULL)
+			id.cluster <- list(NULL)
+			
+			for(i in 1:best.index){
+
+				id.cluster[[i]] <- as.character(names(best.partition[best.partition == i]))
+				cluster.length <- c(cluster.length, length(id.cluster[[i]]))
+
+			}
+			
+			clusters <- list(data.mat=data.mat, obj.proximity=obj.proximity, sil.part=sil.part, sil=sil.k, sil.cluster=sil.cluster, 
+				cluster.length=cluster.length, best.index=best.index, id.cluster=id.cluster, 
+				best.partition=best.partition, iter.max=iter.max, eigen.centrality=eigen.centrality)
+		
+		}else{
+			clusters <- NULL
+			print("No clusters were created...")
+		}
+
+	}else{
+		
+		clusters <- NULL
+		print("No clusters were created...")
+	}	
+	
+	return(clusters)
+
+}
+
+
+
+# write cytoscape network attribute file
+
+
+.write.cyto.attr <- function(clusters,file.net,file.net.info,file.param,threshold=NULL){
+
+	
+	obj.proximity <- clusters$obj.proximity
+	
+	norm.connect <- .normal.net(clusters=clusters)
+	norm.connect$strength.matrix <- norm.connect$strength.matrix[rownames(obj.proximity),colnames(obj.proximity)]
+	norm.connect$intra.matrix <- norm.connect$intra.matrix[rownames(obj.proximity),colnames(obj.proximity)]
+		
+	.write.cyto.net(net.matrix=obj.proximity,file.net=file.net,thresh=threshold,diagonal=FALSE,norm.connect=norm.connect)
+
+	adj.matrix <- clusters$obj.proximity
+
+
+	centrality <- matrix(NA,nrow(adj.matrix),4)
+	rownames(centrality) <- rownames(adj.matrix)
+	colnames(centrality) <- c("degree","scaled_degree","betweenness","scaled_betweenness")
+
+	centrality[,"degree"] <- degree(adj.matrix, gmode="graph", diag=FALSE, rescale=FALSE)
+	centrality[,"scaled_degree"] <- degree(adj.matrix, gmode="graph", diag=FALSE, rescale=TRUE)
+	centrality[,"betweenness"] <- betweenness(adj.matrix, gmode="graph", diag=FALSE, cmode="undirected", rescale=FALSE)
+	centrality[,"scaled_betweenness"] <- betweenness(adj.matrix, gmode="graph", diag=FALSE, cmode="undirected", rescale=TRUE)
+	
+	centrality[,"scaled_betweenness"][is.na(centrality[,"scaled_betweenness"])] <- 0
+	centrality[,"scaled_betweenness"][centrality[,"scaled_betweenness"] == 0] <- (100 - sum(centrality[,"scaled_betweenness"]))/length(centrality[,"scaled_betweenness"][centrality[,"scaled_betweenness"] == 0])
+			
+	annot.info <- data.frame(rownames(centrality),clusters$best.partition[rownames(centrality)],centrality)
+	write.table(annot.info,file=file.net.info,col.names=c("name","module",colnames(centrality)),row.names=F,sep="\t",quote=FALSE)
+	
+	cat(paste("Median proximity: ",median(clusters$obj.proximity),"\n",sep=""),file=file.param,append=TRUE)
+	cat(paste("Upper quartile of the proximity: ",
+			median(clusters$obj.proximity[clusters$obj.proximity >= median(clusters$obj.proximity)]),sep=""),
+			file=file.param,append=TRUE)
+
+	
+}
+
+
+# write cytoscape network file
+
+.write.cyto.net <- function(net.matrix,file.net,diagonal=FALSE,thresh=NULL,link.type="pp",norm.connect=NULL){
+	
+	if(!diagonal){diag(net.matrix) <- 0}
+	
+	# file header
+	if(!(is.null(norm.connect))){
+		write(paste("node_1","link_type",
+				"node_2","link_strength","normalized_strength","intra_modular_link",sep="\t"),
+				file = file.net,append=TRUE)
+	}else{
+		write(paste("node_1","link_type",
+				"node_2","link_strength",sep="\t"),
+				file = file.net,append=TRUE)
+	}
+	
+	# file content
+	for (i in 1:dim(net.matrix)[1]) {
+		for (j in i:dim(net.matrix)[2]) {
+			if(is.null(thresh)){
+				if(net.matrix[i,j] != 0 & !(is.null(norm.connect))){
+					write(paste(dimnames(net.matrix)[[1]][i],link.type,
+							dimnames(net.matrix)[[2]][j],net.matrix[i,j],norm.connect$strength.matrix[i,j],norm.connect$intra.matrix[i,j],sep="\t"),
+							file = file.net,append=TRUE)
+				}else if(net.matrix[i,j] != 0){
+					write(paste(dimnames(net.matrix)[[1]][i],link.type,
+							dimnames(net.matrix)[[2]][j],net.matrix[i,j],sep="\t"),
+							file = file.net,append=TRUE)
+				}
+			}else if(abs(net.matrix[i,j]) >= thresh){
+				if(net.matrix[i,j] != 0 & !(is.null(norm.connect))){
+					write(paste(dimnames(net.matrix)[[1]][i],link.type,
+							dimnames(net.matrix)[[2]][j],net.matrix[i,j],norm.connect$strength.matrix[i,j],norm.connect$intra.matrix[i,j],sep="\t"),
+							file = file.net,append=TRUE)
+				}else if(net.matrix[i,j] != 0){
+					write(paste(dimnames(net.matrix)[[1]][i],link.type,
+							dimnames(net.matrix)[[2]][j],net.matrix[i,j],sep="\t"),
+							file = file.net,append=TRUE)
+				}
+			}
+		}
+	}
+
+
+
+}
+
+# normalize network proximities
+
+.normal.net <- function(clusters=NULL){
+
+	strength.matrix <- NULL
+	intra.matrix <- NULL
+	
+	
+	if(!is.null(clusters)){
+		obj.proximity <- clusters$obj.proximity
+		id.cluster <- clusters$id.cluster
+		betw <- betweenness(obj.proximity, gmode="graph", diag=FALSE, cmode="undirected", rescale=FALSE)
+		names(betw) <- rownames(obj.proximity)
+		betw[betw==0] <- 1
+		
+		obj.proximity <- t(obj.proximity*betw)*betw
+
+		strength.matrix <- matrix(0,nrow(obj.proximity),ncol(obj.proximity))
+		dimnames(strength.matrix) <- dimnames(obj.proximity)
+
+		intra.matrix <- matrix(0,nrow(obj.proximity),ncol(obj.proximity))
+		dimnames(intra.matrix) <- dimnames(obj.proximity)
+		
+
+		for(i in 1:length(id.cluster)){
+
+			prox.matrix <- obj.proximity[id.cluster[[i]],id.cluster[[i]]]
+			med <- median(prox.matrix[upper.tri(prox.matrix)])
+			upperquart <- sort(prox.matrix[upper.tri(prox.matrix)],decreasing=TRUE)[ceiling(length(prox.matrix[upper.tri(prox.matrix)])/4)]
+			upperdec <- sort(prox.matrix[upper.tri(prox.matrix)],decreasing=TRUE)[ceiling(length(prox.matrix[upper.tri(prox.matrix)])/10)]
+			upperfive <- sort(prox.matrix[upper.tri(prox.matrix)],decreasing=TRUE)[ceiling(length(prox.matrix[upper.tri(prox.matrix)])/20)]
+			
+			strength.matrix[rownames(prox.matrix),colnames(prox.matrix)][prox.matrix < med] <- 0
+			strength.matrix[rownames(prox.matrix),colnames(prox.matrix)][prox.matrix >= med] <- 1
+			strength.matrix[rownames(prox.matrix),colnames(prox.matrix)][prox.matrix >= upperquart] <- 2
+			strength.matrix[rownames(prox.matrix),colnames(prox.matrix)][prox.matrix >= upperdec] <- 3
+			strength.matrix[rownames(prox.matrix),colnames(prox.matrix)][prox.matrix >= upperfive] <- 4
+			
+			test.connect <- strength.matrix[rownames(prox.matrix),colnames(prox.matrix)]
+			diag(test.connect) <- 0
+			test.connect <- apply(test.connect,1,sum)
+			if(min(test.connect) == 0){			
+				for(j in 1:length(test.connect)){
+					if(test.connect[j]==0){
+						strength.matrix[rownames(prox.matrix),colnames(prox.matrix)][j,prox.matrix[j,]==max(prox.matrix[j,])] <- 1
+						strength.matrix[rownames(prox.matrix),colnames(prox.matrix)][prox.matrix[,j]==max(prox.matrix[,j]),j] <- 1
+					}
+				}
+			}
+
+			intra.matrix[rownames(prox.matrix),colnames(prox.matrix)] <- 1
+		}
+
+		med <- median(obj.proximity[intra.matrix == 0])
+		upperquart <- sort(obj.proximity[intra.matrix == 0],decreasing=TRUE)[ceiling(length(obj.proximity[intra.matrix == 0])/4)]
+		upperdec <- sort(obj.proximity[intra.matrix == 0],decreasing=TRUE)[ceiling(length(obj.proximity[intra.matrix == 0])/10)]
+		upperfive <- sort(obj.proximity[intra.matrix == 0],decreasing=TRUE)[ceiling(length(obj.proximity[intra.matrix == 0])/20)]
+			
+		strength.matrix[intra.matrix == 0 & obj.proximity < med] <- 0
+		strength.matrix[intra.matrix == 0 & obj.proximity >= med] <- 1
+		strength.matrix[intra.matrix == 0 & obj.proximity >= upperquart] <- 2
+		strength.matrix[intra.matrix == 0 & obj.proximity >= upperdec] <- 3
+		strength.matrix[intra.matrix == 0 & obj.proximity >= upperfive] <- 4
+		
+	}
+	
+	return(list(strength.matrix=strength.matrix,intra.matrix=intra.matrix))	
+
+}
+
+# routines for partial correlation computations 
+
+
+.pcor.test <- function(x,y,z,use="mat",method="p",na.rm=T){
+	# The partial correlation coefficient between x and y given z
+	#
+	#
+	# x and y should be vectors
+	#
+	# z can be either a vector or a matrix
+	#
+	# use: There are two methods to calculate the partial correlation coefficient.
+	#	 One is by using variance-covariance matrix ("mat") and the other is by using recursive formula ("rec").
+	#	 Default is "mat".
+	#
+	# method: There are three ways to calculate the correlation coefficient, 
+	#	    which are Pearson's ("p"), Spearman's ("s"), and Kendall's ("k") methods.
+	# 	    The last two methods which are Spearman's and Kendall's coefficient are based on the non-parametric analysis.
+	#	    Default is "p".
+	#
+	# na.rm: If na.rm is T, then all the missing samples are deleted from the whole dataset, which is (x,y,z).
+	#        If not, the missing samples will be removed just when the correlation coefficient is calculated.
+	#	   However, the number of samples for the p-value is the number of samples after removing 
+	#	   all the missing samples from the whole dataset.
+	#	   Default is "T".
+
+	x <- c(x)
+	y <- c(y)
+	z <- as.data.frame(z)
+
+	if(use == "mat"){
+		p.use <- "Var-Cov matrix"
+		pcor = .pcor.mat(x,y,z,method=method,na.rm=na.rm)
+	}else if(use == "rec"){
+		p.use <- "Recursive formula"
+		pcor = .pcor.rec(x,y,z,method=method,na.rm=na.rm)
+	}else{
+		stop("\'use\' should be either \"rec\" or \"mat\"!\n")
+	}
+
+	# print the method
+	if(gregexpr("p",method)[[1]][1] == 1){
+		p.method <- "Pearson"
+	}else if(gregexpr("s",method)[[1]][1] == 1){
+		p.method <- "Spearman"
+	}else if(gregexpr("k",method)[[1]][1] == 1){
+		p.method <- "Kendall"
+	}else{
+		stop("\'method\' should be \"pearson\" or \"spearman\" or \"kendall\"!\n")
+	}
+
+	# sample number
+	n <- dim(na.omit(data.frame(x,y,z)))[1]
+	
+	# given variables' number
+	gn <- dim(z)[2]
+
+	# p-value
+	if(p.method == "Kendall"){
+		statistic <- pcor/sqrt(2*(2*(n-gn)+5)/(9*(n-gn)*(n-1-gn)))
+		p.value <- 2*pnorm(-abs(statistic))
+
+	}else{
+		statistic <- pcor*sqrt((n-2-gn)/(1-pcor^2))
+  		p.value <- 2*pnorm(-abs(statistic))
+	}
+
+	data.frame(estimate=pcor,p.value=p.value,statistic=statistic,n=n,gn=gn,Method=p.method,Use=p.use)
+}			
+
+# By using var-cov matrix
+.pcor.mat <- function(x,y,z,method="p",na.rm=T){
+
+	x <- c(x)
+	y <- c(y)
+	z <- as.data.frame(z)
+
+	if(dim(z)[2] == 0){
+		stop("There should be given data\n")
+	}
+
+	data <- data.frame(x,y,z)
+
+	if(na.rm == T){
+		data = na.omit(data)
+	}
+
+	xdata <- na.omit(data.frame(data[,c(1,2)]))
+	Sxx <- cov(xdata,xdata,m=method)
+
+	xzdata <- na.omit(data)
+	xdata <- data.frame(xzdata[,c(1,2)])
+	zdata <- data.frame(xzdata[,-c(1,2)])
+	Sxz <- cov(xdata,zdata,m=method)
+
+	zdata <- na.omit(data.frame(data[,-c(1,2)]))
+	Szz <- cov(zdata,zdata,m=method)
+
+	# is Szz positive definite?
+	zz.ev <- eigen(Szz)$values
+	if(min(zz.ev)[1]<0){
+		stop("\'Szz\' is not positive definite!\n")
+	}
+
+	# partial correlation
+	Sxx.z <- Sxx - Sxz %*% solve(Szz) %*% t(Sxz)
+	
+	rxx.z <- cov2cor(Sxx.z)[1,2]
+
+	rxx.z
+}
+
+# By using recursive formula
+.pcor.rec <- function(x,y,z,method="p",na.rm=T){
+	# 
+
+	x <- c(x)
+	y <- c(y)
+	z <- as.data.frame(z)
+
+	if(dim(z)[2] == 0){
+		stop("There should be given data\n")
+	}
+
+	data <- data.frame(x,y,z)
+
+	if(na.rm == T){
+		data = na.omit(data)
+	}
+
+	# recursive formula
+	if(dim(z)[2] == 1){
+		tdata <- na.omit(data.frame(data[,1],data[,2]))
+		rxy <- cor(tdata[,1],tdata[,2],m=method)
+
+		tdata <- na.omit(data.frame(data[,1],data[,-c(1,2)]))
+		rxz <- cor(tdata[,1],tdata[,2],m=method)
+
+		tdata <- na.omit(data.frame(data[,2],data[,-c(1,2)]))
+		ryz <- cor(tdata[,1],tdata[,2],m=method)
+
+		rxy.z <- (rxy - rxz*ryz)/( sqrt(1-rxz^2)*sqrt(1-ryz^2) )
+		
+		return(rxy.z)
+	}else{
+		x <- c(data[,1])
+		y <- c(data[,2])
+		z0 <- c(data[,3])
+		zc <- as.data.frame(data[,-c(1,2,3)])
+
+		rxy.zc <- .pcor.rec(x,y,zc,method=method,na.rm=na.rm)
+		rxz0.zc <- .pcor.rec(x,z0,zc,method=method,na.rm=na.rm)
+		ryz0.zc <- .pcor.rec(y,z0,zc,method=method,na.rm=na.rm)
+		
+		rxy.z <- (rxy.zc - rxz0.zc*ryz0.zc)/( sqrt(1-rxz0.zc^2)*sqrt(1-ryz0.zc^2) )
+		return(rxy.z)
+	}			
+}	
