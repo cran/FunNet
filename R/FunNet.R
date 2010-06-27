@@ -7,7 +7,7 @@
 
 .packageName <- "FunNet"
 
-.funnet.version <- "1.00-8"
+.funnet.version <- "1.00-9"
 
 try(Sys.setlocale("LC_ALL", "en_US.utf8"), silent = TRUE)
 

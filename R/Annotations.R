@@ -86,10 +86,10 @@
 	}else if(espece == "sce"){
 	
 		suppressWarnings (apply(DTtemp, 1, FUN = ".MiseEnFormeKeggSC" ,FichierFinalNonQuote))
-		annot.base$sce$KEGG.file.annot <<- read.table ( file = FichierFinalNonQuote, na.strings = "",fill=TRUE,colClasses="character",sep= "\t",header = FALSE,quote = "",comment.char = "")
+		annot.base$sce$KEGG.file.annot <<- read.table(file = FichierFinalNonQuote, na.strings = "",fill=TRUE,colClasses="character",sep= "\t",header = FALSE,quote = "",comment.char = "")
 		
 		DTLL <- .GeneInfo()
-		DTLL <- as.matrix(DTLL[DTLL[,1] == "4932",])
+		DTLL <- as.matrix(DTLL[DTLL[,1] == species[species[,"name"]=="sce","taxid"],])
 		rownames(DTLL) <- as.character(DTLL[,4])
 		annot.base$sce$KEGG.file.annot <<- as.matrix(annot.base$sce$KEGG.file.annot)
 		rownames(annot.base$sce$KEGG.file.annot) <<- as.character(annot.base$sce$KEGG.file.annot[,1])
@@ -333,7 +333,7 @@
 		annot.base[[espece]]$unigene <<- UGLLesp
 		colnames(annot.base[[espece]]$unigene) <<- c("GeneID","UniGene")
 	}else if(espece == "sce"){
-		annot.base$sce$orf <<- DTLL[DTLL[,1] == "4932",c(2,3)]
+		annot.base$sce$orf <<- DTLL[DTLL[,1] == species[species[,"name"]=="sce","taxid"],c(2,3)]
 		annot.base$sce$orf <<- cbind.data.frame(annot.base$sce$orf, row.names = as.character(annot.base$sce$orf[,1]))
 		colnames(annot.base$sce$orf) <<- c("GeneID","ORF")
 	}
@@ -415,7 +415,7 @@ annotations <- function(cust.specs=NULL){
 	annot.base <<- list(NULL)
 
 	if(is.null(species)){
-		species <<- cbind(c("hsa","mmu","rno","sce","gga"),c("9606","10090","10116","4932","9031"))
+		species <<- cbind(c("hsa","mmu","rno","sce","gga"),c("9606","10090","10116","559292","9031"))
 		colnames(species) <<- c("name","taxid")
 		rownames(species) <<- species[,"taxid"]
 	}

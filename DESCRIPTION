@@ -1,6 +1,6 @@
 Package: FunNet
-Version: 1.00-8
-Date: 2010-02-02
+Version: 1.00-9
+Date: 2010-06-27
 Title: Integrative Functional Analysis of Transcriptional Networks
 Author: Corneliu Henegar <corneliu@henegar.info>
 Maintainer: Corneliu Henegar <corneliu@henegar.info>
@@ -29,6 +29,6 @@ License: GPL (>= 2)
 URL: http://corneliu.henegar.info/FunNet.htm,
         http://www.geneontology.org/GO.tools.microarray.shtml#funnet,
         http://www.funnet.info, http://www.funnet.ws
-Packaged: 2010-02-02 20:04:28 UTC; chenegar
+Packaged: 2010-06-27 06:06:38 UTC; CH
 Repository: CRAN
-Date/Publication: 2010-02-03 10:09:01
+Date/Publication: 2010-06-27 19:00:20
