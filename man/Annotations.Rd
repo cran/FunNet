@@ -12,7 +12,10 @@
           annotations(cust.specs=NULL)
           }
           \arguments{
-            \item{cust.specs}{this parameter is experimental at this moment.}
+            \item{cust.specs}{this parameter allows to specify a custom list of organisms for extracting GO and KEGG annotations 
+			from respective databases. It is experimental at this moment and therefore no specific documentation is 
+			provided at this time about its use (although an example of usage is available within the "Annotations.R" 
+			script included in the package).}
           }
           \details{For details concerning the utilization of the annotations data by the FunNet package please see FunNet help 
           		or man page \code{help(FunNet)}.
@@ -21,11 +24,9 @@
           		provide up-to-date annotations, stored into environmental variables and directly formatted for
           		FunNet use. Some errors may be seen when using this routine to update annotations provided within the package. 
           		These errors are mainly related to the availability of GO annotations for the current month. 
-          		In case of extraction errors, explained most usually by a delay in updating GO web servers, the date of 
-          		the GO release to be used can be expressly indicated through the parameter \code{annot.date} 
-          		(see example below). The transcript identification system used for FunNet analysis is EntrezGene GeneID's. 
+          		The transcript identification system used for FunNet analysis is EntrezGene GeneID's. 
           		Also some errors may be related to changes in the format of annotation files provided by the NCBI. Please 
-          		update your package with the last version available as this my correct such issues.\cr
+          		update your package with the last version available as this may correct such issues.\cr
           		
           		The annotation data is provided as a unique R data archive which should be manualy loaded into R 
           		after loading the FunNet package in order to be able to use the updated annotations for your analysis.\cr

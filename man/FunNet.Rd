@@ -36,9 +36,10 @@
             \item{wd}{sets the working directory where the expression data files are to be found and 
             		where results are to be stored.}
             \item{org}{indicates the biological species to which analyzable transcript expression data is related; 
-            		currently only four possibilities are available with FunNet: "hsa" for human expression data,
+            		currently only six possibilities are available with FunNet: "hsa" for human expression data,
             		"mmu" for mouse (Mus Musculus) expression data, "rna" for rat (Rattus Norvegicus) expression data,
-            		"sce" for yeast (Saccharomyces Cerevisiae) expression data, and "gga" for chicken (Gallus gallus) data. Default value is "hsa".}
+            		"sce" for yeast (Saccharomyces Cerevisiae) expression data, "gga" for chicken (Gallus Gallus) data 
+			and "ath" for thale cress (Arabidopsis Thaliana). Default value is "hsa".}
             \item{up.frame}{a dataframe containing expression data for up-regulated genes for the case where two lists 
             		of genes are analyzed comparatively (i.e. up- vs. down-regulated genes). The first column should 
             		contain the GeneID's of the analyzed genes (text data), while the other columns should provide expression 

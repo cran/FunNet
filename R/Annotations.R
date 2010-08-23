@@ -75,7 +75,7 @@
 
 
 
-	if(espece != "sce"){
+	if(espece != "sce" & espece != "ath"){
 	
 		suppressWarnings (apply (DTtemp, 1, FUN = ".MiseEnFormeKegg" ,FichierFinalNonQuote))
 		annot.base[[espece]]$KEGG.file.annot <<- read.table (file = FichierFinalNonQuote ,na.strings = "",fill=TRUE,colClasses="character",sep= "\t",header = FALSE,quote = "",comment.char = "")
@@ -107,6 +107,31 @@
 		colnames(annot.base$sce$KEGG.file.annot) <<- c("GeneID","KEGG")
 		
 		write.table (annot.base$sce$KEGG.file.annot, FichierFinal, col.names =FALSE, row.names=FALSE, append = TRUE, sep= "\t") 
+	
+	}else if(espece == "ath"){
+		
+		suppressWarnings (apply(DTtemp, 1, FUN = ".MiseEnFormeKeggSC" ,FichierFinalNonQuote))
+		annot.base$ath$KEGG.file.annot <<- read.table(file = FichierFinalNonQuote, na.strings = "",fill=TRUE,colClasses="character",sep= "\t",header = FALSE,quote = "",comment.char = "")
+		
+		DTLL <- .GeneInfo()
+		DTLL <- as.matrix(DTLL[DTLL[,1] == species[species[,"name"]=="ath","taxid"],])
+		rownames(DTLL) <- as.character(DTLL[,4])
+		annot.base$ath$KEGG.file.annot <<- as.matrix(annot.base$ath$KEGG.file.annot)
+		rownames(annot.base$ath$KEGG.file.annot) <<- as.character(annot.base$ath$KEGG.file.annot[,1])
+		x <- DTLL[DTLL[,4] %in% as.character(annot.base$ath$KEGG.file.annot[,1]),2]
+		annot.base$ath$KEGG.file.annot <<- annot.base$ath$KEGG.file.annot[annot.base$ath$KEGG.file.annot[,1] %in% names(x),]
+		
+		y <- NULL
+		
+		for(i in 1:nrow(annot.base$ath$KEGG.file.annot)){				
+			
+			y <- rbind(y,c(x[annot.base$ath$KEGG.file.annot[i,1]],annot.base$ath$KEGG.file.annot[i,2]))
+		}
+		colnames(y) <- as.character(matrix("",1,ncol(y)))
+		annot.base$ath$KEGG.file.annot <<- y
+		colnames(annot.base$ath$KEGG.file.annot) <<- c("GeneID","KEGG")
+		
+		write.table (annot.base$ath$KEGG.file.annot, FichierFinal, col.names =FALSE, row.names=FALSE, append = TRUE, sep= "\t") 
 	}
 
 
@@ -415,7 +440,7 @@ annotations <- function(cust.specs=NULL){
 	annot.base <<- list(NULL)
 
 	if(is.null(species)){
-		species <<- cbind(c("hsa","mmu","rno","sce","gga"),c("9606","10090","10116","559292","9031"))
+		species <<- cbind(c("hsa","mmu","rno","sce","gga","ath"),c("9606","10090","10116","559292","9031","3702"))
 		colnames(species) <<- c("name","taxid")
 		rownames(species) <<- species[,"taxid"]
 	}
