@@ -103,7 +103,7 @@
 			y <- rbind(y,c(x[annot.base$sce$KEGG.file.annot[i,1]],annot.base$sce$KEGG.file.annot[i,2]))
 		}
 		colnames(y) <- as.character(matrix("",1,ncol(y)))
-		annot.base$sce$KEGG.file.annot <<- y
+		annot.base$sce$KEGG.file.annot <<- as.data.frame(y)
 		colnames(annot.base$sce$KEGG.file.annot) <<- c("GeneID","KEGG")
 		
 		write.table (annot.base$sce$KEGG.file.annot, FichierFinal, col.names =FALSE, row.names=FALSE, append = TRUE, sep= "\t") 
@@ -128,7 +128,7 @@
 			y <- rbind(y,c(x[annot.base$ath$KEGG.file.annot[i,1]],annot.base$ath$KEGG.file.annot[i,2]))
 		}
 		colnames(y) <- as.character(matrix("",1,ncol(y)))
-		annot.base$ath$KEGG.file.annot <<- y
+		annot.base$ath$KEGG.file.annot <<- as.data.frame(y)
 		colnames(annot.base$ath$KEGG.file.annot) <<- c("GeneID","KEGG")
 		
 		write.table (annot.base$ath$KEGG.file.annot, FichierFinal, col.names =FALSE, row.names=FALSE, append = TRUE, sep= "\t") 
@@ -440,7 +440,7 @@ annotations <- function(cust.specs=NULL){
 	annot.base <<- list(NULL)
 
 	if(is.null(species)){
-		species <<- cbind(c("hsa","mmu","rno","sce","gga","ath"),c("9606","10090","10116","559292","9031","3702"))
+		species <<- cbind(c("hsa","mmu","rno","sce","gga","ath","dre"),c("9606","10090","10116","559292","9031","3702","7955"))
 		colnames(species) <<- c("name","taxid")
 		rownames(species) <<- species[,"taxid"]
 	}

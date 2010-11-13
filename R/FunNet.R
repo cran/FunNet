@@ -7,7 +7,7 @@
 
 .packageName <- "FunNet"
 
-.funnet.version <- "1.00-10"
+.funnet.version <- "1.00-11"
 
 try(Sys.setlocale("LC_ALL", "en_US.utf8"), silent = TRUE)
 
@@ -18,7 +18,7 @@ try(Sys.setlocale("LC_ALL", "en_US.utf8"), silent = TRUE)
 
 cat(paste("\nThis is FunNet package ",.funnet.version," built and maintained by Corneliu Henegar.\n",
 	"Using Gene Ontology and KEGG annotations updated on ",annot.date,".\n\n",
-	"FunNet(wd='', org=c('hsa','mmu','rno','sce','gga','ath'), two.lists=TRUE, up.frame=NULL,\n",
+	"FunNet(wd='', org=c('hsa','mmu','rno','sce','gga','ath','dre'), two.lists=TRUE, up.frame=NULL,\n",
 			"\t genes.frame=NULL, restrict=FALSE, ref.list=NULL, logged=FALSE,\n",
 			"\t down.frame=NULL, discriminant=FALSE, go.bp=TRUE, go.cc=TRUE, go.mf=TRUE,\n",
 			"\t kegg=TRUE, annot.method=c('specificity','terminological','decorrelated'),\n",
