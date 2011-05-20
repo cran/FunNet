@@ -36,10 +36,11 @@
             \item{wd}{sets the working directory where the expression data files are to be found and 
             		where results are to be stored.}
             \item{org}{indicates the biological species to which analyzable transcript expression data is related; 
-            		currently only seven possibilities are available with FunNet: "hsa" for human expression data,
-            		"mmu" for mouse (Mus Musculus) expression data, "rna" for rat (Rattus Norvegicus) expression data,
-            		"sce" for yeast (Saccharomyces Cerevisiae) expression data, "gga" for chicken (Gallus Gallus) data, 
-					"ath" for thale cress (Arabidopsis Thaliana) and "dre" for zebrafish (Danio Rerio). Default value is "hsa".}
+            		currently nine possibilities are available with FunNet: "hsa" for human expression data,
+            		"mmu" for mouse (Mus Musculus), "rna" for rat (Rattus Norvegicus),
+            		"sce" for yeast (Saccharomyces Cerevisiae), "gga" for chicken (Gallus Gallus), 
+			"ath" for thale cress (Arabidopsis Thaliana), "dre" for zebrafish (Danio Rerio), "cel" for worm 
+			(Caenorhabditis Elegans), "dme" for fruit fly (Drosophila Melanogaster). Default value is "hsa".}
             \item{up.frame}{a dataframe containing expression data for up-regulated genes for the case where two lists 
             		of genes are analyzed comparatively (i.e. up- vs. down-regulated genes). The first column should 
             		contain the GeneID's of the analyzed genes (text data), while the other columns should provide expression 
@@ -250,7 +251,7 @@
 
           ## most common use
           data(obese)
-          FunNet(org="HS", two.lists=TRUE, up.frame=up.frame, down.frame=down.frame,
+          FunNet(org="hsa", two.lists=TRUE, up.frame=up.frame, down.frame=down.frame,
 	  	genes.frame=NULL, restrict=TRUE, ref.list=ref.list, logged=TRUE,
 	  	discriminant=TRUE, go.bp=TRUE, go.cc=TRUE, go.mf=TRUE, kegg=TRUE,
 	  	annot.method="specificity", annot.details=TRUE, 

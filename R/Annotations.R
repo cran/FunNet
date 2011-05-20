@@ -41,7 +41,7 @@
 
 	DIResp <- espece
 
-	download.file(paste("ftp://ftp.genome.ad.jp/pub/kegg/pathway/organisms/",espece,"/",espece,"_gene_map.tab",sep=""), paste(getwd(),"/Annotations/KEGG/",DIResp,"/tmp.txt",sep=""), mode = "w" )
+	download.file(paste("ftp://ftp.genome.ad.jp/pub/kegg/pathway/organisms/",espece,"/",espece,"_gene_map.tab",sep=""), paste(getwd(),"/Annotations/KEGG/",DIResp,"/tmp.txt",sep=""), mode = "w" ,method="wget")
 
 	FichierFinalNonQuote <- file(paste(getwd(),"/Annotations/KEGG/",DIResp,"/ll_keggNonQuote.txt",sep=""), "w+")
 
@@ -75,7 +75,7 @@
 
 
 
-	if(espece != "sce" & espece != "ath"){
+	if(espece != "sce" & espece != "ath" & espece != "cel" & espece != "dme"){
 	
 		suppressWarnings (apply (DTtemp, 1, FUN = ".MiseEnFormeKegg" ,FichierFinalNonQuote))
 		annot.base[[espece]]$KEGG.file.annot <<- read.table (file = FichierFinalNonQuote ,na.strings = "",fill=TRUE,colClasses="character",sep= "\t",header = FALSE,quote = "",comment.char = "")
@@ -132,6 +132,54 @@
 		colnames(annot.base$ath$KEGG.file.annot) <<- c("GeneID","KEGG")
 		
 		write.table (annot.base$ath$KEGG.file.annot, FichierFinal, col.names =FALSE, row.names=FALSE, append = TRUE, sep= "\t") 
+	}else if(espece == "cel"){
+		
+		suppressWarnings (apply(DTtemp, 1, FUN = ".MiseEnFormeKeggSC" ,FichierFinalNonQuote))
+		annot.base$cel$KEGG.file.annot <<- read.table(file = FichierFinalNonQuote, na.strings = "",fill=TRUE,colClasses="character",sep= "\t",header = FALSE,quote = "",comment.char = "")
+		
+		DTLL <- .GeneInfo()
+		DTLL <- as.matrix(DTLL[DTLL[,1] == species[species[,"name"]=="cel","taxid"],])
+		rownames(DTLL) <- as.character(DTLL[,4])
+		annot.base$cel$KEGG.file.annot <<- as.matrix(annot.base$cel$KEGG.file.annot)
+		rownames(annot.base$cel$KEGG.file.annot) <<- as.character(annot.base$cel$KEGG.file.annot[,1])
+		x <- DTLL[DTLL[,4] %in% as.character(annot.base$cel$KEGG.file.annot[,1]),2]
+		annot.base$cel$KEGG.file.annot <<- annot.base$cel$KEGG.file.annot[annot.base$cel$KEGG.file.annot[,1] %in% names(x),]
+		
+		y <- NULL
+		
+		for(i in 1:nrow(annot.base$cel$KEGG.file.annot)){				
+			
+			y <- rbind(y,c(x[annot.base$cel$KEGG.file.annot[i,1]],annot.base$cel$KEGG.file.annot[i,2]))
+		}
+		colnames(y) <- as.character(matrix("",1,ncol(y)))
+		annot.base$cel$KEGG.file.annot <<- as.data.frame(y)
+		colnames(annot.base$cel$KEGG.file.annot) <<- c("GeneID","KEGG")
+		
+		write.table (annot.base$cel$KEGG.file.annot, FichierFinal, col.names =FALSE, row.names=FALSE, append = TRUE, sep= "\t") 
+	}else if(espece == "dme"){
+		
+		suppressWarnings (apply(DTtemp, 1, FUN = ".MiseEnFormeKeggSC" ,FichierFinalNonQuote))
+		annot.base$cel$KEGG.file.annot <<- read.table(file = FichierFinalNonQuote, na.strings = "",fill=TRUE,colClasses="character",sep= "\t",header = FALSE,quote = "",comment.char = "")
+		
+		DTLL <- .GeneInfo()
+		DTLL <- as.matrix(DTLL[DTLL[,1] == species[species[,"name"]=="dme","taxid"],])
+		rownames(DTLL) <- as.character(DTLL[,4])
+		annot.base$cel$KEGG.file.annot <<- as.matrix(annot.base$cel$KEGG.file.annot)
+		rownames(annot.base$cel$KEGG.file.annot) <<- as.character(annot.base$cel$KEGG.file.annot[,1])
+		x <- DTLL[DTLL[,4] %in% as.character(annot.base$cel$KEGG.file.annot[,1]),2]
+		annot.base$cel$KEGG.file.annot <<- annot.base$cel$KEGG.file.annot[annot.base$cel$KEGG.file.annot[,1] %in% names(x),]
+		
+		y <- NULL
+		
+		for(i in 1:nrow(annot.base$cel$KEGG.file.annot)){				
+			
+			y <- rbind(y,c(x[annot.base$cel$KEGG.file.annot[i,1]],annot.base$cel$KEGG.file.annot[i,2]))
+		}
+		colnames(y) <- as.character(matrix("",1,ncol(y)))
+		annot.base$cel$KEGG.file.annot <<- as.data.frame(y)
+		colnames(annot.base$cel$KEGG.file.annot) <<- c("GeneID","KEGG")
+		
+		write.table (annot.base$cel$KEGG.file.annot, FichierFinal, col.names =FALSE, row.names=FALSE, append = TRUE, sep= "\t") 
 	}
 
 
@@ -150,7 +198,7 @@
 	dir.create(paste(getwd(),"/Annotations/KEGG",sep=""))
 
 
-	download.file ( "ftp://ftp.genome.ad.jp/pub/kegg/pathway/map_title.tab" ,paste(getwd(), "/Annotations/KEGG/Temp_kegg_terms.txt",sep=""), mode = "w" )
+	download.file ( "ftp://ftp.genome.ad.jp/pub/kegg/pathway/map_title.tab" ,paste(getwd(), "/Annotations/KEGG/Temp_kegg_terms.txt",sep=""), mode = "w" ,method="wget")
 	temp <- file (paste(getwd(),"/Annotations/KEGG/Temp_kegg_terms.txt",sep=""),"r")
 	Fichkeggterms <- file (paste(getwd(),"/Annotations/KEGG/kegg_terms.txt",sep=""),"w")
 
@@ -196,7 +244,7 @@
 
 	NomFichier  <- "go_daily-termdb-tables.tar.gz"
 
-	download.file(paste ("http://archive.geneontology.org/latest-termdb/", NomFichier,sep = ""),paste (getwd(),"/go_daily-termdb-tables.tar.gz",sep=""),mode="wb")
+	download.file(paste ("http://archive.geneontology.org/latest-termdb/", NomFichier,sep = ""),paste (getwd(),"/go_daily-termdb-tables.tar.gz",sep=""),mode="wb",method="wget")
 
 	system("gunzip go_daily-termdb-tables.tar.gz")
 	system("tar -xf go_daily-termdb-tables.tar")
@@ -379,7 +427,7 @@
 
 
 
-	download.file("http://www.geneontology.org/doc/GO.terms_and_ids" ,paste(getwd(),"/Annotations/GO/GoTermsTmp.txt",sep=""), mode = "w")
+	download.file("http://www.geneontology.org/doc/GO.terms_and_ids" ,paste(getwd(),"/Annotations/GO/GoTermsTmp.txt",sep=""), mode = "w",method="wget")
 
 	FichGoTermsAndIds <- file(paste(getwd(),"/Annotations/GO/GoTermsTmp.txt",sep=""), "r") 
 
@@ -389,7 +437,7 @@
 
 
 
-	download.file("ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/gene2go.gz" ,paste(getwd(),"/Annotations/GO/gene2go.gz",sep=""), mode = "wb")
+	download.file("ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/gene2go.gz" ,paste(getwd(),"/Annotations/GO/gene2go.gz",sep=""), mode = "wb",method="wget")
 
 	Gene2GOTempgz <- gzfile(paste(getwd(),"/Annotations/GO/gene2go.gz",sep=""),"rb") 
 
@@ -440,7 +488,7 @@ annotations <- function(cust.specs=NULL){
 	annot.base <<- list(NULL)
 
 	if(is.null(species)){
-		species <<- cbind(c("hsa","mmu","rno","sce","gga","ath","dre"),c("9606","10090","10116","559292","9031","3702","7955"))
+		species <<- cbind(c("hsa","mmu","rno","sce","gga","ath","dre","cel","dme"),c("9606","10090","10116","559292","9031","3702","7955","6239","7227"))
 		colnames(species) <<- c("name","taxid")
 		rownames(species) <<- species[,"taxid"]
 	}
@@ -468,7 +516,7 @@ annotations <- function(cust.specs=NULL){
 
 	dir.create(paste(getwd(),"/Annotations", sep= ""))
 	
-	download.file(paste("ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/gene_info.gz",sep="") ,paste( getwd(),"/Annotations/Temp.gz",sep=""), mode = "wb" )
+	download.file(paste("ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/gene_info.gz",sep="") ,paste( getwd(),"/Annotations/Temp.gz",sep=""), mode = "wb",method="wget")
 	
 	LLTempgz <- gzfile(paste(getwd(),"/Annotations/Temp.gz",sep=""),"rb")
 	LLTemp <- file(paste(getwd(),"/Annotations/gene_info.txt",sep=""), "w+")
@@ -479,7 +527,7 @@ annotations <- function(cust.specs=NULL){
 	close(LLTemp)
 	unlink(paste(getwd(),"/Annotations/Temp.gz",sep=""))
 	
-	download.file(paste("ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/gene2unigene",sep="") ,paste( getwd(),"/Annotations/gene2unigene.txt",sep=""), mode = "wb" )
+	download.file(paste("ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/gene2unigene",sep="") ,paste( getwd(),"/Annotations/gene2unigene.txt",sep=""), mode = "wb",method="wget" )
 		
 	.Kegg(species=species)
 	.goAndLL(species=species)
